@@ -2,6 +2,7 @@
 import asyncio
 import json
 import logging
+import re
 import threading
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -9,6 +10,7 @@ from typing import Any, Dict, List, Optional
 logger = logging.getLogger(__name__)
 
 STATE_DIR = Path("/tmp/levish")
+BT_SCAN_FILE = STATE_DIR / "bt_scan.json"
 BLUETOOTH_FILE = STATE_DIR / "bluetooth.json"
 
 try:
@@ -266,3 +268,42 @@ class BluetoothManager:
                     return
         except Exception as exc:
             logger.debug("BluetoothManager stop_discovery failed: %s", exc)
+
+    async def scan_to_file(self, duration: float = 6.0) -> List[Dict[str, Any]]:
+        """Discover nearby devices and publish them to bt_scan.json for the control centre."""
+        devices = await self.scan_devices(duration)
+        STATE_DIR.mkdir(parents=True, exist_ok=True)
+        try:
+            BT_SCAN_FILE.write_text(json.dumps({"devices": devices}, indent=2))
+        except OSError as exc:
+            logger.error("Failed to write bt_scan.json: %s", exc)
+        return devices
+
+    async def pair_device(self, address: str) -> bool:
+        """Pair, trust and connect a device through bluetoothctl, which provides the pairing agent."""
+        if not re.fullmatch(r"([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}", address or ""):
+            return False
+        script = (
+            "agent NoInputNoOutput\n"
+            "default-agent\n"
+            f"pair {address}\n"
+            f"trust {address}\n"
+            f"connect {address}\n"
+            "quit\n"
+        )
+        try:
+            proc = await asyncio.create_subprocess_exec(
+                "bluetoothctl",
+                stdin=asyncio.subprocess.PIPE,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.STDOUT,
+            )
+            out, _ = await asyncio.wait_for(proc.communicate(script.encode()), timeout=60.0)
+        except (asyncio.TimeoutError, FileNotFoundError, OSError) as exc:
+            logger.error("BluetoothManager pair_device(%s) failed: %s", address, exc)
+            return False
+        text = out.decode(errors="replace")
+        paired = "Pairing successful" in text or "already paired" in text.lower()
+        await self._collect()
+        return paired
+

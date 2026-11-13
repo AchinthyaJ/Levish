@@ -2,6 +2,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Quickshell.Hyprland
 import "common"
 import "bar"
 import "dashboard"
@@ -62,6 +63,15 @@ ShellRoot {
     // ── Control Center toggle ────────────────────────────────────────
     property bool ccOpen: false
 
+    // The control centre closes when another window takes focus.
+    Connections {
+        target: Hyprland
+        function onRawEvent(event) {
+            if (root.ccOpen && (event.name === "activewindow" || event.name === "activewindowv2"))
+                root.ccOpen = false
+        }
+    }
+
     // One scope per screen: the bar and the two drop-downs that grow out of it.
     Variants {
         model: Quickshell.screens
@@ -94,6 +104,7 @@ ShellRoot {
                 anchorRight: bar.statusRight
                 anchorWidth: bar.statusWidth
                 open: root.ccOpen
+                onCloseRequested: root.ccOpen = false
             }
         }
     }

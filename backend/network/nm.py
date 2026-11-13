@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 
 STATE_DIR = Path("/tmp/levish")
 NETWORK_FILE = STATE_DIR / "network.json"
+WIFI_SCAN_FILE = STATE_DIR / "wifi_scan.json"
 
 
 def _wifi_icon(signal: int, conn_type: str, connected: bool) -> str:
@@ -146,7 +147,12 @@ class NetworkManager:
 
         icon = _wifi_icon(signal, conn_type, connected)
 
+        # Radio state: lets the control centre show a switch that is on/off, not just "connected".
+        radio_out = await _run(["nmcli", "radio", "wifi"])
+        radio = radio_out.strip().lower() == "enabled"
+
         return {
+            "radio": radio,
             "connected": connected,
             "ssid": ssid or conn_name,
             "signal": signal,
@@ -221,3 +227,15 @@ class NetworkManager:
             await _run(["nmcli", "radio", "wifi", "on"])
         await asyncio.sleep(1)
         await self._collect()
+
+    async def scan_to_file(self) -> List[Dict[str, Any]]:
+        """Scan for networks and publish them to wifi_scan.json for the control centre."""
+        networks = await self.list_wifi_networks()
+        networks.sort(key=lambda n: (not n["in_use"], -n["signal"]))
+        STATE_DIR.mkdir(parents=True, exist_ok=True)
+        try:
+            WIFI_SCAN_FILE.write_text(json.dumps({"networks": networks}, indent=2))
+        except OSError as exc:
+            logger.error("Failed to write wifi_scan.json: %s", exc)
+        return networks
+

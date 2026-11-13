@@ -96,5 +96,22 @@ class TestBrightness(unittest.IsolatedAsyncioTestCase):
         self.assertLessEqual(val, 100)
 
 
+class TestPowerProfiles(unittest.TestCase):
+    def test_parse_profiles_marks_active(self):
+        from power.profiles import parse_profiles
+        text = (
+            "  performance:\n    CpuDriver:\tintel_pstate\n\n"
+            "  balanced:\n    CpuDriver:\tintel_pstate\n\n"
+            "* power-saver:\n    CpuDriver:\tintel_pstate\n"
+        )
+        result = parse_profiles(text)
+        self.assertEqual(result["active"], "power-saver")
+        self.assertEqual(result["profiles"], ["performance", "balanced", "power-saver"])
+
+    def test_parse_profiles_empty(self):
+        from power.profiles import parse_profiles
+        self.assertEqual(parse_profiles(""), {"active": "", "profiles": []})
+
+
 if __name__ == "__main__":
     unittest.main()

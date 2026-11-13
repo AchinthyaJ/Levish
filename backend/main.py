@@ -22,6 +22,7 @@ from network.nm import NetworkManager as NMManager
 from bluetooth.bluez import BluetoothManager
 from media.mpris import MediaPlayer
 from power.power import PowerManager
+from power.profiles import PowerProfileManager
 from applications.apps import ApplicationManager
 from brightness import BrightnessManager
 
@@ -72,6 +73,7 @@ class LevishBackend:
         self.power = PowerManager()
         self.apps = ApplicationManager(self.bus, pinned)
         self.brightness = BrightnessManager(self.bus)
+        self.profiles = PowerProfileManager(self.bus)
 
     async def start(self) -> None:
         """Start all subsystems."""
@@ -89,6 +91,7 @@ class LevishBackend:
             self.bluetooth.start(),
             self.media.start(),
             self.brightness.start(),
+            self.profiles.start(),
         ]
         results = await asyncio.gather(*starts, return_exceptions=True)
         for i, r in enumerate(results):
@@ -111,6 +114,7 @@ class LevishBackend:
             self.bluetooth.stop(),
             self.media.stop(),
             self.brightness.stop(),
+            self.profiles.stop(),
         ]
         await asyncio.gather(*stops, return_exceptions=True)
         logger.info("All subsystems stopped")
@@ -239,6 +243,24 @@ class LevishBackend:
             query = str(value) if value else ""
             results = await self.apps.search(query)
             return {"apps": results}
+        elif action == "wifi_scan":
+            networks = await self.network.scan_to_file()
+            return {"ok": True, "count": len(networks)}
+        elif action == "bt_scan":
+            devices = await self.bluetooth.scan_to_file()
+            return {"ok": True, "count": len(devices)}
+        elif action == "bt_pair":
+            ok = await self.bluetooth.pair_device(str(value or ""))
+            return {"ok": ok}
+        elif action == "bt_connect":
+            ok = await self.bluetooth.connect_device(str(value or ""))
+            return {"ok": ok}
+        elif action == "bt_disconnect":
+            ok = await self.bluetooth.disconnect_device(str(value or ""))
+            return {"ok": ok}
+        elif action == "power_profile":
+            ok = await self.profiles.set_profile(str(value or ""))
+            return {"ok": ok}
         elif action == "reload_config":
             self.config.reload()
             return {"ok": True}
