@@ -46,22 +46,22 @@ PanelWindow {
         width: win.width
         y: win.shown ? win.tipRoom : win.height - 3
         height: win.height - y
-    }
-    MouseArea {
-        id: reveal
-        anchors.fill: zone
-        enabled: win.autoHide
-        hoverEnabled: true
-        acceptedButtons: Qt.NoButton
-        onContainsMouseChanged: {
-            if (containsMouse) { hideDelay.stop(); win.shown = true }
-            else hideDelay.restart()
+
+        // HoverHandler is passive: it sees the pointer even when a child icon's MouseArea
+        // is under it, so hovering a cell never looks like leaving the dock.
+        HoverHandler {
+            id: reveal
+            enabled: win.autoHide
+            onHoveredChanged: {
+                if (hovered) { hideDelay.stop(); win.shown = true }
+                else hideDelay.restart()
+            }
         }
     }
     Timer {
         id: hideDelay
         interval: 450
-        onTriggered: if (!reveal.containsMouse) win.shown = false
+        onTriggered: if (!reveal.hovered) win.shown = false
     }
 
     Item {
