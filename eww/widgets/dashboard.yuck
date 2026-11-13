@@ -1,0 +1,70 @@
+; =============================================================
+; dashboard.yuck — Performance panel (matches reference image)
+; Top: CPU · GPU.  Bottom: Storage · Network · Memory.
+; =============================================================
+
+(defwidget dashboard []
+  (box :class "dash-root" :orientation "v" :valign "start" :spacing 8
+    ; ── Top row: CPU · GPU ───────────────────────────────────
+    (box :orientation "h" :spacing 8 :valign "start" :vexpand false
+      (stat-card :cls "cpu" :icon "󰻠" :title "CPU"
+                 :subtitle {cpu-model-str}
+                 :temp {metrics.cpu_temp == "null" ? "--" : "${metrics.cpu_temp}°C"}
+                 :value {metrics.cpu_percent})
+      (stat-card :cls "gpu" :icon "󰢮" :title "GPU"
+                 :subtitle {metrics.gpu_percent == "null" ? "No GPU data" : "Graphics"}
+                 :temp {metrics.gpu_temp == "null" ? "--" : "${metrics.gpu_temp}°C"}
+                 :value {metrics.gpu_percent == "null" ? 0 : metrics.gpu_percent}))
+
+    ; ── Bottom row: Storage · Network · Memory ───────────────
+    (box :orientation "h" :spacing 8 :valign "start" :vexpand false
+      (box :class "card squircle card-storage" :orientation "h" :spacing 10
+        (ring :value {disk-percent} :label "${disk-percent}%" :caption "Used" :size 64 :cls "ring-storage")
+        (box :orientation "v" :spacing 2 :valign "center"
+          (label :class "card-title" :halign "start" :text "Storage")
+          (label :class "card-sub" :halign "start" :text {disk-text})))
+      (box :class "card squircle card-network" :orientation "v" :spacing 4 :hexpand true
+        (label :class "card-title" :halign "start" :text "󰓅  Network")
+        (graph :class "net-graph" :value {metrics.net_down_mbps} :thickness 1.5
+               :time-range "60s" :min 0 :max 5 :height 36)
+        (net-row :label "Download" :value "${metrics.net_down_mbps} MB/s")
+        (net-row :label "Upload"   :value "${metrics.net_up_mbps} MB/s"))
+      (box :class "card squircle card-memory" :orientation "v" :spacing 2
+        (label :class "card-title" :halign "start" :text "󰍛  Memory")
+        (ring :value {metrics.ram_percent} :label "${metrics.ram_percent}%" :caption "Used"
+              :size 64 :cls "ring-memory")
+        (label :class "card-sub" :halign "center"
+               :text "${metrics.ram_used_gb} / ${metrics.ram_total_gb} GB")))))
+
+; Top card: icon ring, title + model, "Usage" caption, big percent badge,
+; temperature line and a two-tone bar.
+(defwidget stat-card [cls icon title subtitle temp value]
+  (box :class "card squircle stat-card ${cls}" :orientation "v" :spacing 4 :hexpand true :vexpand false :valign "start"
+    (box :orientation "h" :spacing 10
+      (overlay :class "icon-ring"
+        (circular-progress :class "icon-ring-arc" :value value :start-at 0
+                           :clockwise true :thickness 4)
+        (label :class "stat-icon" :text icon))
+      (box :orientation "v" :spacing 1 :hexpand true
+        (label :class "card-title" :halign "start" :text title)
+        (label :class "card-sub" :halign "start" :limit-width 14 :text subtitle))
+      (box :orientation "v" :spacing 0 :valign "start"
+        (label :class "card-sub" :halign "end" :text "Usage")
+        (label :class "badge squircle-sm" :halign "end" :text "${value}%")))
+    (box :class "temp-row" :orientation "h" :spacing 8
+      (label :class "card-sub" :text "󰔏 ${temp}")
+      (progress :class "temp-bar" :valign "center" :value value))))
+
+(defwidget net-row [label value]
+  (box :orientation "h" :spacing 4
+    (label :class "card-sub" :hexpand true :halign "start" :text label)
+    (label :class "card-val" :text value)))
+
+; Ring gauge with a centred value and caption (Storage, Memory).
+(defwidget ring [value label caption size ?cls]
+  (overlay :class "ring ${cls ?: ''}"
+    (circular-progress :class "ring-arc" :value value :start-at 0
+                       :clockwise true :thickness 5)
+    (box :orientation "v" :valign "center" :halign "center" :spacing 0
+      (label :class "ring-text" :text label)
+      (label :class "card-sub" :text caption))))

@@ -1,0 +1,5 @@
+{
+  "dock": ["firefox", "thunar", "kitty", "code"],
+  "launcher_pinned": ["firefox", "thunar", "kitty", "code", "discord"],
+  "recent": []
+}

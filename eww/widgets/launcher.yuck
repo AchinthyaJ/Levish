@@ -1,0 +1,57 @@
+; =============================================================
+; launcher.yuck — Application launcher (Windows-style)
+; =============================================================
+
+(defwidget launcher []
+  (box :class "launcher-container" :orientation "v" :spacing 0
+    ; Header bar
+    (box :class "launcher-header" :orientation "h" :spacing 12
+      (label :class "launcher-logo" :text "")
+      (input :class "launcher-search"
+             :value {launcher-query}
+             :placeholder "Search applications…"
+             :onchange "eww update launcher-query={}")
+      (eventbox :onclick "eww close levish-launcher"
+                :cursor "pointer"
+        (label :class "launcher-close" :text "✕")))
+
+    ; View toggle toolbar
+    (box :class "launcher-toolbar" :orientation "h" :spacing 6
+      (eventbox :onclick "eww update launcher-view=grid" :cursor "pointer"
+        (box :class "view-btn ${launcher-view == 'grid' ? 'view-btn-active' : ''}"
+             :orientation "h" :spacing 4
+          (label :text "⊞")
+          (label :text "Grid")))
+      (eventbox :onclick "eww update launcher-view=list" :cursor "pointer"
+        (box :class "view-btn ${launcher-view == 'list' ? 'view-btn-active' : ''}"
+             :orientation "h" :spacing 4
+          (label :text "≡")
+          (label :text "List"))))
+
+    ; App area
+    (scroll :hscroll false :vscroll true
+      (box :class {launcher-view == "grid" ? "app-grid" : "app-list"}
+           :orientation {launcher-view == "grid" ? "h" : "v"}
+           :wrap {launcher-view == "grid"}
+           :space-evenly false
+           :spacing {launcher-view == "grid" ? 6 : 2}
+        (for app in launcher-apps-all
+          (launcher-app-item :app app))))))
+
+(defwidget launcher-app-item [app]
+  (eventbox
+    :cursor "pointer"
+    :onclick `${app.exec} & disown; eww close levish-launcher`
+    :tooltip {app.name}
+    (box :class {launcher-view == "grid" ? "app-grid-item" : "app-list-item"}
+         :orientation {launcher-view == "grid" ? "v" : "h"}
+         :spacing {launcher-view == "grid" ? 4 : 8}
+      (image :path {app.icon}
+             :width  {launcher-view == "grid" ? 48 : 24}
+             :height {launcher-view == "grid" ? 48 : 24}
+             :image-width  {launcher-view == "grid" ? 48 : 24}
+             :image-height {launcher-view == "grid" ? 48 : 24})
+      (label :class "app-name"
+             :text {app.name}
+             :limit-width {launcher-view == "grid" ? 12 : 36}
+             :halign {launcher-view == "grid" ? "center" : "start"}))))

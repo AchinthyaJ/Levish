@@ -1,0 +1,24 @@
+; =============================================================
+; osd.yuck — On-screen display (volume / brightness)
+; =============================================================
+
+(defwidget osd-widget []
+  (revealer :reveal {osd-data.visible}
+            :transition "slideup"
+            :duration "250ms"
+    (box :class "osd-container" :orientation "h" :spacing 14
+      ; Icon
+      (label :class "osd-icon"
+             :text {osd-data.type == "volume"
+                   ? (osd-data.value == 0 ? "󰝟"
+                      : osd-data.value < 34 ? "󰕿"
+                      : osd-data.value < 67 ? "󰖀"
+                      : "󰕾")
+                   : "󰃞"})
+      ; Progress track
+      (box :class "osd-track" :hexpand true
+        (box :class "osd-fill"
+             :hexpand false
+             :style "min-width: ${osd-data.value}%;"))
+      ; Value label
+      (label :class "osd-val" :text "${osd-data.value}%"))))

@@ -1,0 +1,144 @@
+; =============================================================
+; Levish — eww.yuck
+; Main configuration entry point
+; =============================================================
+
+; ── Poll variables (backend state files) ─────────────────────
+(defpoll workspaces       :interval "0.5s" :initial "[]"
+  `cat /tmp/levish/workspaces.json 2>/dev/null || echo '[]'`)
+
+(defpoll active-window    :interval "0.5s" :initial "{\"title\":\"Desktop\",\"class\":\"\"}"
+  `cat /tmp/levish/active_window.json 2>/dev/null || echo '{"title":"Desktop","class":""}'`)
+
+(defpoll metrics :interval "2s" :initial "{\"cpu_percent\":0,\"cpu_per_core\":[],\"ram_percent\":0,\"ram_used_gb\":0,\"ram_total_gb\":16,\"swap_percent\":0,\"swap_used_gb\":0,\"swap_total_gb\":0,\"cpu_temp\":null,\"gpu_percent\":null,\"gpu_vram_used_gb\":null,\"gpu_vram_total_gb\":null,\"gpu_temp\":null,\"net_up_mbps\":0,\"net_down_mbps\":0}"
+  `cat /tmp/levish/metrics.json 2>/dev/null || echo '{"cpu_percent":0,"cpu_per_core":[],"ram_percent":0,"ram_used_gb":0,"ram_total_gb":16,"swap_percent":0,"swap_used_gb":0,"swap_total_gb":0,"cpu_temp":null,"gpu_percent":null,"gpu_vram_used_gb":null,"gpu_vram_total_gb":null,"gpu_temp":null,"net_up_mbps":0,"net_down_mbps":0}'`)
+
+(defpoll battery :interval "30s" :initial "{\"percent\":100,\"charging\":false,\"status\":\"Full\",\"icon\":\"battery-full\"}"
+  `cat /tmp/levish/battery.json 2>/dev/null || echo '{"percent":100,"charging":false,"status":"Full","icon":"battery-full"}'`)
+
+(defpoll audio :interval "1s" :initial "{\"volume\":50,\"muted\":false,\"icon\":\"audio-volume-medium\",\"source_muted\":false}"
+  `cat /tmp/levish/audio.json 2>/dev/null || echo '{"volume":50,"muted":false,"icon":"audio-volume-medium","source_muted":false}'`)
+
+(defpoll network :interval "5s" :initial "{\"connected\":false,\"ssid\":\"\",\"signal\":0,\"icon\":\"network-offline\",\"type\":\"none\",\"ip\":\"\"}"
+  `cat /tmp/levish/network.json 2>/dev/null || echo '{"connected":false,"ssid":"","signal":0,"icon":"network-offline","type":"none","ip":""}'`)
+
+(defpoll media :interval "2s" :initial "{\"playing\":false,\"title\":\"\",\"artist\":\"\",\"album\":\"\",\"art_url\":\"\",\"player\":\"\"}"
+  `cat /tmp/levish/media.json 2>/dev/null || echo '{"playing":false,"title":"","artist":"","album":"","art_url":"","player":""}'`)
+
+(defpoll bluetooth :interval "5s" :initial "{\"enabled\":false,\"devices\":[]}"
+  `cat /tmp/levish/bluetooth.json 2>/dev/null || echo '{"enabled":false,"devices":[]}'`)
+
+(defpoll brightness :interval "2s" :initial "{\"percent\":70}"
+  `cat /tmp/levish/brightness.json 2>/dev/null || echo '{"percent":70}'`)
+
+(defpoll osd-data         :interval "0.3s" :initial "{\"visible\":false,\"type\":\"volume\",\"value\":50}"
+  `cat /tmp/levish/osd.json 2>/dev/null || echo '{"visible":false,"type":"volume","value":50}'`)
+
+(defpoll clock-time       :interval "10s"  `date +"%-H:%M"`)
+(defpoll clock-date       :interval "60s"  `date +"%a %-d"`)
+(defpoll hostname-str     :interval "3600s" `hostname`)
+(defpoll kernel-str       :interval "3600s" `uname -r`)
+(defpoll uptime-str       :interval "60s"   `uptime -p | sed 's/up //'`)
+(defpoll cpu-model-str    :interval "3600s" `grep -m1 'model name' /proc/cpuinfo | cut -d: -f2 | sed 's/^ *//'`)
+(defpoll disk-text :interval "30s" :initial "--"
+  `df -h --output=used,size / | tail -1 | awk '{print $1" / "$2}'`)
+
+(defpoll disk-percent :interval "30s" :initial "0"
+  `df --output=pcent / | tail -1 | tr -dc 0-9`)
+
+(defpoll cal-data :interval "60s" :initial "{}"
+  `python3 '/home/achinthyaj/Documents/Projects/My Death/Levish/scripts/calendar_data.py'`)
+(defpoll launcher-apps-all :interval "30s" :initial "[]"
+  `python3 '/home/achinthyaj/Documents/Projects/My Death/Levish/scripts/launcher_apps.py' 2>/dev/null || echo '[]'`)
+
+; ── Mutable state variables ───────────────────────────────────
+(defvar dash-tab          "perf")
+(defvar dash-open        false)
+(defvar dashboard-visible false)
+(defvar controls-visible  false)
+(defvar power-visible     false)
+(defvar launcher-visible  false)
+(defvar launcher-view     "grid")
+(defvar launcher-query    "")
+
+; ── Include widget definitions ────────────────────────────────
+(include "./widgets/bar.yuck")
+(include "./widgets/dashboard.yuck")
+(include "./widgets/controls.yuck")
+(include "./widgets/power.yuck")
+(include "./widgets/launcher.yuck")
+(include "./widgets/osd.yuck")
+
+; =============================================================
+; Window Definitions
+; =============================================================
+
+; Top bar — one window, one row. Islands sit side by side on the same y-axis.
+(defwindow levish-bar
+  :monitor 0
+  :geometry (geometry :x "0px" :y "10px"
+                      :width "1900px" :height "30px"
+                      :anchor "top center")
+  :stacking "fg"
+  :exclusive true
+  :namespace "levish"
+  (bar))
+
+; Dashboard popup
+(defwindow levish-dashboard
+  :monitor 0
+  :geometry (geometry :x "10px" :y "48px"
+                      :width "600px"
+                      :anchor "top left")
+  :stacking "fg"
+  :exclusive false
+  :namespace "levish"
+  (eventbox :onhover "'/home/achinthyaj/Documents/Projects/My Death/Levish/scripts/popup.sh' enter dashboard" :onhoverlost "'/home/achinthyaj/Documents/Projects/My Death/Levish/scripts/popup.sh' leave dashboard"
+    (revealer :reveal dash-open :transition "slidedown" :duration "320ms"
+      (dashboard))))
+
+; App launcher (centered)
+(defwindow levish-launcher
+  :monitor 0
+  :geometry (geometry :x "0px" :y "0px"
+                      :width "720px" :height "540px"
+                      :anchor "center")
+  :stacking "fg"
+  :exclusive false
+  :focusable true
+  :namespace "levish"
+  (launcher))
+
+; System controls panel
+(defwindow levish-controls
+  :monitor 0
+  :geometry (geometry :x "-10px" :y "48px"
+                      :width "360px" :height "420px"
+                      :anchor "top right")
+  :stacking "fg"
+  :exclusive false
+  :namespace "levish"
+  (eventbox :onhover "'/home/achinthyaj/Documents/Projects/My Death/Levish/scripts/popup.sh' enter controls" :onhoverlost "'/home/achinthyaj/Documents/Projects/My Death/Levish/scripts/popup.sh' leave controls"
+    (controls-panel)))
+
+; Power menu
+(defwindow levish-power-menu
+  :monitor 0
+  :geometry (geometry :x "-10px" :y "48px"
+                      :width "210px" :height "260px"
+                      :anchor "top right")
+  :stacking "fg"
+  :exclusive false
+  :namespace "levish"
+  (power-menu))
+
+; OSD (volume / brightness)
+(defwindow levish-osd
+  :monitor 0
+  :geometry (geometry :x "0px" :y "-80px"
+                      :width "300px" :height "60px"
+                      :anchor "bottom center")
+  :stacking "fg"
+  :exclusive false
+  :namespace "levish"
+  (osd-widget))

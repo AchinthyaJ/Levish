@@ -1,0 +1,132 @@
+; =============================================================
+; bar.yuck — Top bar floating islands
+; =============================================================
+
+; ── Island A: Performance Monitor ────────────────────────────
+(defwidget bar-perf []
+  (eventbox :onhover "'/home/achinthyaj/Documents/Projects/My Death/Levish/scripts/popup.sh' enter dashboard" :onhoverlost "'/home/achinthyaj/Documents/Projects/My Death/Levish/scripts/popup.sh' leave dashboard"
+            :cursor "pointer"
+            :class "island-hover"
+    (box :class "island bar-perf"
+         :halign "start"
+         :orientation "h"
+         :space-evenly false
+         :spacing 10
+      ; CPU
+      (box :class "metric-item" :orientation "h" :spacing 4
+        (label :class "metric-icon cpu-icon" :text "")
+        (label :class "metric-val" :text "${metrics.cpu_percent}%"))
+      ; RAM
+      (box :class "metric-item" :orientation "h" :spacing 4
+        (label :class "metric-icon ram-icon" :text "")
+        (label :class "metric-val" :text "${metrics.ram_percent}%"))
+      ; GPU (conditional)
+      (revealer :reveal {metrics.gpu_percent != "null"}
+                :transition "slideleft" :duration "200ms"
+        (box :class "metric-item" :orientation "h" :spacing 4
+          (label :class "metric-icon gpu-icon" :text "󰢮")
+          (label :class "metric-val" :text "${metrics.gpu_percent}%")))
+      ; CPU Temp (conditional)
+      (revealer :reveal {metrics.cpu_temp != "null"}
+                :transition "slideleft" :duration "200ms"
+        (box :class "metric-item" :orientation "h" :spacing 4
+          (label :class "metric-icon temp-icon" :text "")
+          (label :class "metric-val" :text "${metrics.cpu_temp}°"))))))
+
+; ── Island B: Workspace Dots ──────────────────────────────────
+(defwidget bar-workspaces []
+  (box :class "island bar-workspaces"
+       :halign "start"
+       :orientation "h"
+       :space-evenly false
+       :spacing 6
+    (for ws in workspaces
+      (eventbox
+        :onclick "hyprctl dispatch 'hl.dsp.focus({ workspace = ${ws.id} })'"
+        :cursor "pointer"
+        (box :class "workspace-dot ${ws.active ? 'ws-active' : ''} ${ws.occupied ? 'ws-occupied' : ''}")))))
+
+; ── Island C: Active Window Title ────────────────────────────
+(defwidget bar-window []
+  (box :class "island bar-window"
+       :orientation "h"
+       :halign "center"
+       :space-evenly false
+    (label :class "window-title"
+           :text {active-window.title == "" ? "  Desktop" : "  ${active-window.title}"}
+           :limit-width 32
+           :tooltip {active-window.title})))
+
+; ── Island D: Clock + Date ────────────────────────────────────
+(defwidget bar-clock []
+  (box :class "island bar-clock"
+       :halign "end"
+       :orientation "h"
+       :space-evenly false
+       :spacing 10
+    (label :class "clock-date" :text {clock-date})
+    (box :class "clock-sep")
+    (label :class "clock-time" :text {clock-time})))
+
+; ── Island E: System Indicators + Power ──────────────────────
+(defwidget bar-system []
+  (box :class "island bar-system"
+       :halign "end"
+       :orientation "h"
+       :space-evenly false
+       :spacing 2
+    ; Network indicator
+    (eventbox :onhover "'/home/achinthyaj/Documents/Projects/My Death/Levish/scripts/popup.sh' enter controls" :onhoverlost "'/home/achinthyaj/Documents/Projects/My Death/Levish/scripts/popup.sh' leave controls"
+              :cursor "pointer"
+      (box :class "sys-pill ${network.connected ? 'pill-active' : 'pill-inactive'}"
+           :orientation "h" :spacing 4
+        (label :class "sys-icon"
+               :text {network.connected ? "󰤨" : "󰤭"})
+        (revealer :reveal {network.connected}
+                  :transition "slideleft" :duration "150ms"
+          (label :class "sys-label"
+                 :text {network.ssid != "" ? network.ssid : "Connected"}
+                 :limit-width 10))))
+    ; Bluetooth
+    (eventbox :onhover "'/home/achinthyaj/Documents/Projects/My Death/Levish/scripts/popup.sh' enter controls" :onhoverlost "'/home/achinthyaj/Documents/Projects/My Death/Levish/scripts/popup.sh' leave controls"
+              :cursor "pointer"
+      (box :class "sys-pill ${bluetooth.enabled ? 'pill-active' : 'pill-inactive'}"
+        (label :class "sys-icon" :text "󰂯")))
+    ; Audio
+    (eventbox :onhover "'/home/achinthyaj/Documents/Projects/My Death/Levish/scripts/popup.sh' enter controls" :onhoverlost "'/home/achinthyaj/Documents/Projects/My Death/Levish/scripts/popup.sh' leave controls"
+              :cursor "pointer"
+      (box :class "sys-pill ${audio.muted ? 'pill-inactive' : 'pill-active'}"
+           :orientation "h" :spacing 4
+        (label :class "sys-icon"
+               :text {audio.muted ? "󰝟" : audio.volume > 66 ? "󰕾" : audio.volume > 33 ? "󰖀" : "󰕿"})
+        (label :class "sys-label" :text "${audio.volume}%")))
+    ; Battery
+    (revealer :reveal true :transition "none"
+      (box :class "sys-pill ${battery.charging ? 'pill-charging' : ''}"
+           :orientation "h" :spacing 4
+        (label :class "sys-icon"
+               :text {battery.charging ? "󰂄"
+                     : battery.percent > 80 ? "󰁹"
+                     : battery.percent > 60 ? "󰁾"
+                     : battery.percent > 40 ? "󰁼"
+                     : battery.percent > 20 ? "󰁺"
+                     : "󰁻"})
+        (label :class "sys-label" :text "${battery.percent}%")))
+    ; Separator
+    (box :class "sys-sep")
+    ; Power button
+    (eventbox :onclick "eww open --toggle levish-power-menu --config '/home/achinthyaj/Documents/Projects/My Death/Levish/eww'"
+              :cursor "pointer"
+      (box :class "power-btn-wrap"
+        (label :class "power-btn" :text "⏻")))))
+
+; ── The whole top bar: left group · centered title · right group ─
+(defwidget bar []
+  (centerbox :class "bar-row" :orientation "h"
+    (box :class "bar-left" :halign "start" :spacing 10
+      (bar-perf)
+      (bar-workspaces))
+    (bar-window)
+    (box :class "bar-right" :halign "end" :spacing 10
+      (bar-clock)
+      (bar-system))))

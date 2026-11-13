@@ -1,0 +1,19 @@
+; =============================================================
+; power.yuck — Power menu
+; =============================================================
+
+(defwidget power-menu []
+  (box :class "power-menu" :orientation "v" :spacing 4
+    (power-item :icon "󰌾" :label "Lock"     :key "1" :action "lock")
+    (power-item :icon "󰒲" :label "Suspend"  :key "2" :action "suspend")
+    (power-item :icon "󰑐" :label "Restart"  :key "3" :action "restart")
+    (power-item :icon "󰐥" :label "Shutdown" :key "4" :action "shutdown")
+    (power-item :icon "󰗽" :label "Logout"   :key "5" :action "logout")))
+
+(defwidget power-item [icon label key action]
+  (eventbox :cursor "pointer"
+            :onclick `echo '{"cmd":"action","action":"${action}"}' | nc -U /tmp/levish/control.sock; eww close levish-power-menu`
+    (box :class "power-item" :orientation "h" :spacing 10
+      (label :class "power-key"   :text key)
+      (label :class "power-icon"  :text icon)
+      (label :class "power-label" :text label :hexpand true))))

@@ -1,0 +1,33 @@
+{
+  "theme": {
+    "bg_primary": "#1a1a2e",
+    "bg_secondary": "#16213e",
+    "bg_tertiary": "#0f3460",
+    "accent": "#e94560",
+    "accent_secondary": "#533483",
+    "text_primary": "#eaeaea",
+    "text_secondary": "#a0a0b0",
+    "text_muted": "#606070",
+    "font_size": 14,
+    "radius": 12
+  },
+  "bar": {
+    "height": 42,
+    "margin": 10,
+    "padding_h": 14
+  },
+  "dock": {
+    "icon_size": 48,
+    "auto_hide": false,
+    "position": "bottom",
+    "margin": 10
+  },
+  "osd": {
+    "timeout_ms": 2500,
+    "position": "bottom-center"
+  },
+  "metrics_interval": 2,
+  "clock_format": "%H:%M",
+  "date_format": "%a %d",
+  "monitor": "eDP-1"
+}

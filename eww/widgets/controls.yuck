@@ -1,0 +1,100 @@
+; =============================================================
+; controls.yuck — System control panel
+; =============================================================
+
+(defwidget controls-panel []
+  (box :class "controls-panel" :orientation "v" :spacing 0
+    ; Header
+    (box :class "panel-header" :orientation "h" :spacing 8
+      (label :class "panel-title" :text "System Controls")
+      (eventbox :onclick "eww close levish-controls"
+                :cursor "pointer" :halign "end" :hexpand true
+        (label :class "panel-close" :text "✕")))
+
+    (box :class "panel-divider")
+
+    ; WiFi Section
+    (box :class "ctrl-section" :orientation "v" :spacing 8
+      (box :class "ctrl-row" :orientation "h" :spacing 10
+        (label :class "ctrl-icon wifi-icon" :text "󰤨")
+        (box :orientation "v" :spacing 2 :hexpand true
+          (label :class "ctrl-title" :text "Wi-Fi" :halign "start")
+          (label :class "ctrl-sub"
+                 :text {network.connected ? network.ssid : "Disconnected"}
+                 :halign "start"))
+        (eventbox :cursor "pointer"
+                  :onclick `echo '{"cmd":"action","action":"toggle_wifi"}' | nc -U /tmp/levish/control.sock`
+          (box :class "toggle-pill ${network.connected ? 'toggle-on' : 'toggle-off'}"
+            (label :class "toggle-knob" :text ""))))
+      ; Signal bar when connected
+      (revealer :reveal {network.connected} :transition "slidedown" :duration "150ms"
+        (box :class "prog-track"
+          (box :class "prog-fill" :hexpand false
+               :style "min-width: ${network.signal}%;"))))
+
+    (box :class "ctrl-divider")
+
+    ; Bluetooth Section
+    (box :class "ctrl-section" :orientation "v" :spacing 8
+      (box :class "ctrl-row" :orientation "h" :spacing 10
+        (label :class "ctrl-icon bt-icon" :text "󰂯")
+        (box :orientation "v" :spacing 2 :hexpand true
+          (label :class "ctrl-title" :text "Bluetooth" :halign "start")
+          (label :class "ctrl-sub"
+                 :text {bluetooth.enabled ? "${arraylength(bluetooth.devices)} paired" : "Disabled"}
+                 :halign "start"))
+        (eventbox :cursor "pointer"
+                  :onclick `echo '{"cmd":"action","action":"toggle_bluetooth"}' | nc -U /tmp/levish/control.sock`
+          (box :class "toggle-pill ${bluetooth.enabled ? 'toggle-on' : 'toggle-off'}"
+            (label :class "toggle-knob" :text "")))))
+
+    (box :class "ctrl-divider")
+
+    ; Audio Section
+    (box :class "ctrl-section" :orientation "v" :spacing 10
+      (box :class "ctrl-row" :orientation "h" :spacing 10
+        (eventbox :cursor "pointer"
+                  :onclick "pactl set-sink-mute @DEFAULT_SINK@ toggle"
+          (label :class "ctrl-icon audio-icon ${audio.muted ? 'icon-muted' : ''}"
+                 :text {audio.muted ? "󰝟" : audio.volume > 66 ? "󰕾" : audio.volume > 33 ? "󰖀" : "󰕿"}))
+        (label :class "ctrl-title" :text "Volume" :hexpand true)
+        (label :class "ctrl-val" :text "${audio.volume}%"))
+      (box :class "slider-wrap" :orientation "h" :spacing 8
+        (scale :class "ctrl-slider" :min 0 :max 100
+               :value {audio.volume} :hexpand true
+               :onchange "pactl set-sink-volume @DEFAULT_SINK@ {}%")))
+
+    (box :class "ctrl-divider")
+
+    ; Brightness Section
+    (box :class "ctrl-section" :orientation "v" :spacing 10
+      (box :class "ctrl-row" :orientation "h" :spacing 10
+        (label :class "ctrl-icon bright-icon" :text "󰃞")
+        (label :class "ctrl-title" :text "Brightness" :hexpand true)
+        (label :class "ctrl-val" :text "${brightness.percent}%"))
+      (box :class "slider-wrap" :orientation "h" :spacing 8
+        (scale :class "ctrl-slider" :min 5 :max 100
+               :value {brightness.percent} :hexpand true
+               :onchange "brightnessctl s {}%")))
+
+    (box :class "ctrl-divider")
+
+    ; Battery Section
+    (box :class "ctrl-section" :orientation "v" :spacing 8
+      (box :class "ctrl-row" :orientation "h" :spacing 10
+        (label :class "ctrl-icon batt-icon ${battery.charging ? 'icon-charging' : ''}"
+               :text {battery.charging ? "󰂄"
+                     : battery.percent > 80 ? "󰁹"
+                     : battery.percent > 60 ? "󰁾"
+                     : battery.percent > 40 ? "󰁼"
+                     : battery.percent > 20 ? "󰁺" : "󰁻"})
+        (box :orientation "v" :spacing 2 :hexpand true
+          (label :class "ctrl-title" :text "Battery" :halign "start")
+          (label :class "ctrl-sub"
+                 :text "${battery.status}"
+                 :halign "start"))
+        (label :class "ctrl-val" :text "${battery.percent}%"))
+      (box :class "prog-track"
+        (box :class "prog-fill ${battery.percent < 20 ? 'prog-warn' : ''}"
+             :hexpand false
+             :style "min-width: ${battery.percent}%;")))))

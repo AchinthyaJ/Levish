@@ -1,0 +1,33 @@
+; =============================================================
+; dock.yuck — Bottom floating dock
+; =============================================================
+
+(defwidget dock []
+  (box :class "dock-container"
+       :orientation "h"
+       :space-evenly false
+       :spacing 6
+    (for app in dock-apps
+      (dock-item
+        :name        {app.name}
+        :icon        {app.icon}
+        :exec        {app.exec}
+        :running     {app.running}
+        :focused     {app.focused}
+        :desktop-file {app.desktop_file}))))
+
+(defwidget dock-item [name icon exec running focused desktop-file]
+  (eventbox
+    :cursor "pointer"
+    :onclick `${exec} & disown`
+    :onrightclick `eww open --toggle levish-controls --config '/home/achinthyaj/Documents/Projects/My Death/Levish/eww'`
+    :tooltip name
+    (box :class "dock-item-wrap ${focused ? 'dock-focused' : ''}"
+         :orientation "v"
+         :spacing 3
+      (box :class "dock-icon-wrap"
+        (image :class "dock-icon"
+               :path icon
+               :width 44 :height 44
+               :image-width 44 :image-height 44))
+      (box :class "dock-dot ${running ? 'dock-dot-vis' : ''}"))))
