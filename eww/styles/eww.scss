@@ -273,3 +273,92 @@ $c-memory:  #d7c6f2;   // lavender
 
 // Full track circle stays visible; only the usage arc takes color.
 .ring-arc, .icon-ring-arc { background-color: rgba(255, 255, 255, 0.22); border-radius: 50px; }
+
+// ── Application launcher (launcher.yuck) ─────────────────────
+// Opened from the dock's launcher button. A dark frosted panel with a search header,
+// a grid/list toggle and a scrolling app area.
+.launcher-container {
+  background-color: $surface;
+  border-radius: $radius-lg;
+  border: 1px solid $border;
+  box-shadow: $shadow;
+  padding: 12px;
+}
+
+.launcher-header {
+  padding: 2px 4px 12px 4px;
+}
+
+.launcher-logo {
+  font-size: 16px;
+  color: $accent;
+  min-width: 22px;
+}
+
+.launcher-search {
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid $border;
+  border-radius: $radius-sm;
+  padding: 8px 12px;
+  color: $text-primary;
+  font-size: 13px;
+}
+
+.launcher-search:focus {
+  border-color: $border-accent;
+}
+
+.launcher-close {
+  color: $text-muted;
+  font-size: 14px;
+  padding: 4px 8px;
+  border-radius: $radius-sm;
+}
+
+.launcher-close:hover {
+  color: $text-primary;
+  background-color: $surface-hover;
+}
+
+.launcher-toolbar {
+  padding-bottom: 12px;
+}
+
+.view-btn {
+  padding: 5px 12px;
+  border-radius: $radius-sm;
+  background-color: rgba(255, 255, 255, 0.04);
+  color: $text-secondary;
+  font-size: 12px;
+}
+
+.view-btn:hover {
+  background-color: $surface-hover;
+  color: $text-primary;
+}
+
+.view-btn-active {
+  background-color: $surface-active;
+  color: $text-primary;
+}
+
+.app-grid-item,
+.app-list-item {
+  border-radius: $radius-sm;
+  background-color: transparent;
+}
+
+.app-grid-item,
+.app-list-item {
+  padding: 5px 8px;
+}
+
+.app-grid-item:hover,
+.app-list-item:hover {
+  background-color: $surface-hover;
+}
+
+.app-name {
+  color: $text-primary;
+  font-size: 12px;
+}

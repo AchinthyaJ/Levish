@@ -125,6 +125,10 @@ Canvas {
             seg(11, 17.5, 11, 5); seg(11, 5, 18, 7)
         } else if (kind === "down") {
             seg(12, 4, 12, 19); seg(6.5, 13.5, 12, 19); seg(17.5, 13.5, 12, 19)
+        } else if (kind === "apps") {
+            // Launcher glyph: nine rounded tiles in a three-by-three grid.
+            for (const y of [2.5, 9.5, 16.5])
+                for (const x of [2.5, 9.5, 16.5]) { rrect(x, y, 5, 5, 1.6); ctx.fill() }
         } else if (kind === "up") {
             seg(12, 20, 12, 5); seg(6.5, 10.5, 12, 5); seg(17.5, 10.5, 12, 5)
         }

@@ -1,5 +1,18 @@
 {
-  "dock": ["firefox", "thunar", "kitty", "code"],
-  "launcher_pinned": ["firefox", "thunar", "kitty", "code", "discord"],
+  "dock": [
+    "firefox",
+    "thunar",
+    "kitty",
+    "code",
+    "brave-browser",
+    "com.system76.CosmicFiles"
+  ],
+  "launcher_pinned": [
+    "firefox",
+    "thunar",
+    "kitty",
+    "code",
+    "discord"
+  ],
   "recent": []
 }

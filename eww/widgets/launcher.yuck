@@ -7,7 +7,7 @@
     ; Header bar
     (box :class "launcher-header" :orientation "h" :spacing 12
       (label :class "launcher-logo" :text "")
-      (input :class "launcher-search"
+      (input :class "launcher-search" :hexpand true
              :value {launcher-query}
              :placeholder "Search applications…"
              :onchange "eww update launcher-query={}")
@@ -17,12 +17,12 @@
 
     ; View toggle toolbar
     (box :class "launcher-toolbar" :orientation "h" :spacing 6
-      (eventbox :onclick "eww update launcher-view=grid" :cursor "pointer"
+      (eventbox :hexpand false :onclick "eww update launcher-view=grid" :cursor "pointer"
         (box :class "view-btn ${launcher-view == 'grid' ? 'view-btn-active' : ''}"
              :orientation "h" :spacing 4
           (label :text "⊞")
           (label :text "Grid")))
-      (eventbox :onclick "eww update launcher-view=list" :cursor "pointer"
+      (eventbox :hexpand false :onclick "eww update launcher-view=list" :cursor "pointer"
         (box :class "view-btn ${launcher-view == 'list' ? 'view-btn-active' : ''}"
              :orientation "h" :spacing 4
           (label :text "≡")
@@ -31,10 +31,9 @@
     ; App area
     (scroll :hscroll false :vscroll true
       (box :class {launcher-view == "grid" ? "app-grid" : "app-list"}
-           :orientation {launcher-view == "grid" ? "h" : "v"}
-           :wrap {launcher-view == "grid"}
+           :orientation "v"
            :space-evenly false
-           :spacing {launcher-view == "grid" ? 6 : 2}
+           :spacing 2
         (for app in launcher-apps-all
           (launcher-app-item :app app))))))
 
@@ -44,14 +43,14 @@
     :onclick `${app.exec} & disown; eww close levish-launcher`
     :tooltip {app.name}
     (box :class {launcher-view == "grid" ? "app-grid-item" : "app-list-item"}
-         :orientation {launcher-view == "grid" ? "v" : "h"}
-         :spacing {launcher-view == "grid" ? 4 : 8}
+         :orientation "h"
+         :spacing 10
       (image :path {app.icon}
-             :width  {launcher-view == "grid" ? 48 : 24}
-             :height {launcher-view == "grid" ? 48 : 24}
-             :image-width  {launcher-view == "grid" ? 48 : 24}
-             :image-height {launcher-view == "grid" ? 48 : 24})
+             :width  {launcher-view == "grid" ? 28 : 22}
+             :height {launcher-view == "grid" ? 28 : 22}
+             :image-width  {launcher-view == "grid" ? 28 : 22}
+             :image-height {launcher-view == "grid" ? 28 : 22})
       (label :class "app-name"
              :text {app.name}
-             :limit-width {launcher-view == "grid" ? 12 : 36}
-             :halign {launcher-view == "grid" ? "center" : "start"}))))
+             :limit-width 40
+             :halign "start"))))

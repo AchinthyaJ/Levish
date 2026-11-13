@@ -30,7 +30,7 @@ var accent  = "#c8f7ef"   // aqua
 var radiusIsland = 22
 var radiusCard   = 26   // squircle-like
 var radiusBadge  = 20
-var barHeight    = 44
+var barHeight    = 34
 var barGap       = 16    // space between islands (spreads them across the bar)
 var barEdge      = 0     // islands sit on the top edge
 var islandPad    = 7   // inner horizontal padding of each island (narrower islands)
@@ -39,3 +39,20 @@ var islandPad    = 7   // inner horizontal padding of each island (narrower isla
 // bottom edge, and the bottom corners use dropRadius.
 var fillet       = 14
 var dropRadius   = 26
+
+// ── Dock ──────────────────────────────────────────────────────
+// Neutral dark glass. Deliberately NOT tinted by the turquoise accent.
+var dockGlass     = "#c2111316"   // translucent charcoal; wallpaper shows through
+var dockEdge      = "#2cffffff"   // hairline border
+var dockShadow    = "#14000000"   // very faint layers beneath the glass
+var dockHover     = "#22ffffff"   // backdrop behind a hovered cell
+var dockActive    = "#14ffffff"   // backdrop behind the focused app
+var dockDot       = "#e8ffffff"   // running indicator
+var dockRule      = "#26ffffff"   // separator between groups
+var dockTipBg     = "#e6121417"   // tooltip
+var dockRadius   = 22            // glass corner radius, matches the top-bar islands
+var dockCellPad   = 12            // room around each icon (horizontal)
+var dockInnerPad  = 8             // space between glass edge and cells
+var dockShadowPad = 8             // transparent window margin that holds the shadow
+var dockTipRoom   = 40            // headroom above the glass for tooltips and hover zoom
+var dockZoom      = 1.12          // hover enlargement: restrained, not a bounce

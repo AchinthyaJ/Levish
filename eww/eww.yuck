@@ -101,7 +101,7 @@
 (defwindow levish-launcher
   :monitor 0
   :geometry (geometry :x "0px" :y "0px"
-                      :width "720px" :height "540px"
+                      :width "480px" :height "380px"
                       :anchor "center")
   :stacking "fg"
   :exclusive false

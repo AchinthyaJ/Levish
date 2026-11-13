@@ -6,12 +6,43 @@ import "common"
 import "bar"
 import "dashboard"
 import "controls"
+import "dock"
+import "launcher"
 
 ShellRoot {
     id: root
 
     Data { id: dataStore }
     readonly property var store: dataStore
+
+    // ── Application dock: one instance, shared by every dock window ──
+    DockSettings { id: dockSettings }
+    DockModel { id: dockModel; dockConfig: dockSettings }
+    readonly property var dockConfig: dockSettings
+    readonly property var dockState: dockModel
+    property bool launcherOpen: false
+    Connections {
+        target: dockModel
+        function onLauncherRequested() { root.launcherOpen = !root.launcherOpen }
+    }
+
+    Variants {
+        model: dockSettings.targetScreens
+        delegate: Scope {
+            required property var modelData
+            Dock {
+                screen: modelData
+                dockState: root.dockState
+                dockConfig: root.dockConfig
+            }
+            Launcher {
+                screen: modelData
+                dockState: root.dockState
+                open: root.launcherOpen && modelData === dockSettings.targetScreens[0]
+                onCloseRequested: root.launcherOpen = false
+            }
+        }
+    }
 
     // ── Performance panel hover logic ────────────────────────────────
     // Grace period: moving the pointer from the island into the panel
