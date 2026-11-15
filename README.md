@@ -28,6 +28,50 @@ Everything is configurable in Settings, and the settings are stored in one file 
 
 ---
 
+## Screenshots
+
+**Top bar**
+
+![Top bar](screenshots/top-bar.png)
+
+**Dock**
+
+![Dock](screenshots/dock.png)
+
+**Performance panel**
+
+![Performance panel](screenshots/performance-panel.png)
+
+**Control center**
+
+![Control center](screenshots/control-center.png)
+
+**Power menu**
+
+![Power menu](screenshots/power-menu.png)
+
+**Application launcher**
+
+![Application launcher](screenshots/launcher.png)
+
+**Notifications**
+
+![Notifications](screenshots/notifications.png)
+
+**On-screen display**
+
+![On-screen display](screenshots/osd.png)
+
+**Lock screen**
+
+![Lock screen](screenshots/lock-screen.png)
+
+**Settings**
+
+![Settings](screenshots/settings.png)
+
+---
+
 ## Requirements
 
 Levish was developed and tested on **Arch Linux (CachyOS)** with the versions below. Other versions may work.
