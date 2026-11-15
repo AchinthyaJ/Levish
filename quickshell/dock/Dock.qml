@@ -1,7 +1,7 @@
 // Floating application dock. One layer-shell surface per target monitor, anchored to the
-// bottom edge on the Overlay layer. It is non-exclusive (exclusiveZone 0), so it reserves no
-// space and never displaces tiled windows; it floats above them. Only the glass body takes
-// pointer input (the input mask), so the transparent margins around it stay click-through.
+// bottom edge on the Top layer. It is non-exclusive (exclusiveZone 0), so it reserves no
+// space and never displaces tiled windows; it floats above them. Only the glass body and tooltips
+// take pointer input (the input mask), so transparent margins around it stay click-through.
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
@@ -15,53 +15,58 @@ PanelWindow {
     readonly property real pad: Theme.dockShadowPad
     readonly property real tipRoom: Theme.dockTipRoom
     readonly property bool autoHide: dockConfig.autoHide
-    // Auto-hide only: true while the pointer is revealing the dock.
+    // Visible by default. If auto-hide is enabled, manages reveal state.
     property bool shown: !autoHide
 
+    visible: dockConfig.enabled !== false
     anchors { bottom: true }
     margins { bottom: 0 }
-    // The window stays on the screen edge so the auto-hide strip is reachable. The gap
-    // above the screen edge (configured margin, at least the shadow pad) is inside the window.
     readonly property real bottomGap: Math.max(pad, dockConfig.bottomMargin)
     implicitWidth: body.width + pad * 2
     implicitHeight: tipRoom + body.height + bottomGap
     exclusiveZone: 0
-    // Sit on the true screen edge, ignoring other shells' exclusive zones (e.g. a border strip).
     WlrLayershell.exclusionMode: ExclusionMode.Ignore
     color: "transparent"
     WlrLayershell.namespace: "levish-dock"
-    WlrLayershell.layer: WlrLayer.Overlay
+    WlrLayershell.layer: WlrLayer.Top
 
     onAutoHideChanged: shown = !autoHide
 
-    // Input is limited to the glass (or, with auto-hide, to the reveal zone), so the
-    // transparent headroom and margins never block clicks on windows underneath.
-    mask: Region { item: win.autoHide ? zone : body }
+    // Input mask: covers the interaction area so clicks outside pass to windows below
+    mask: Region { item: win.autoHide ? (win.shown ? interactionArea : zone) : interactionArea }
 
-    // Auto-hide reveal zone: a 3 px strip at the bottom edge while hidden, and the whole
-    // lower part of the window while shown, so moving the pointer onto the glass keeps it open.
+    Item {
+        id: interactionArea
+        anchors.fill: parent
+    }
+
+    // Auto-hide reveal zone: a comfortable 16 px strip at the screen bottom when hidden,
+    // and the full dock area when shown so moving to tooltips never triggers hiding.
     Item {
         id: zone
         x: 0
         width: win.width
-        y: win.shown ? win.tipRoom : win.height - 3
+        y: win.shown ? 0 : win.height - 16
         height: win.height - y
 
-        // HoverHandler is passive: it sees the pointer even when a child icon's MouseArea
-        // is under it, so hovering a cell never looks like leaving the dock.
         HoverHandler {
             id: reveal
             enabled: win.autoHide
             onHoveredChanged: {
-                if (hovered) { hideDelay.stop(); win.shown = true }
-                else hideDelay.restart()
+                if (hovered) {
+                    hideDelay.stop()
+                    win.shown = true
+                } else {
+                    hideDelay.restart()
+                }
             }
         }
     }
+
     Timer {
         id: hideDelay
-        interval: 450
-        onTriggered: if (!reveal.hovered) win.shown = false
+        interval: 600
+        onTriggered: if (!reveal.hovered && win.autoHide) win.shown = false
     }
 
     Item {
@@ -70,9 +75,9 @@ PanelWindow {
         y: win.autoHide && !win.shown ? win.height : win.tipRoom
         width: row.width + Theme.dockInnerPad * 2
         height: row.height + Theme.dockInnerPad * 2
-        Behavior on y { NumberAnimation { duration: 260; easing.type: Easing.OutCubic } }
+        Behavior on y { NumberAnimation { duration: 240; easing.type: Easing.OutCubic } }
 
-        // Very subtle shadow: three faint, growing silhouettes sitting just below the glass.
+        // Subtle multi-layer glass shadow
         Repeater {
             model: [1, 3, 5]
             Rectangle {
@@ -86,13 +91,14 @@ PanelWindow {
             }
         }
 
-        // Neutral translucent glass with a hairline border.
+        // Neutral translucent glass container with hairline border
         Rectangle {
             anchors.fill: parent
             radius: Theme.dockRadius
-            color: Theme.dockGlass
+            color: win.dockConfig.glassColor ? win.dockConfig.glassColor : Theme.dockGlass
             border.color: Theme.dockEdge
             border.width: 1
+            Behavior on color { ColorAnimation { duration: 180 } }
         }
 
         Row {

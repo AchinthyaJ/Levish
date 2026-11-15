@@ -19,6 +19,7 @@ PanelWindow {
     property real anchorRight: 10
     property real anchorWidth: 240
     signal closeRequested()
+    signal settingsRequested()
 
     readonly property real flt: Theme.fillet
     readonly property real bodyW: 380
@@ -34,7 +35,7 @@ PanelWindow {
     anchors { top: true; right: true }
     margins {
         top:   0
-        right: anchorRight - flt
+        right: Math.max(12, Math.min(300, anchorRight > 0 ? (anchorRight - flt) : 12))
     }
     implicitWidth:  bodyW + 2 * flt
     implicitHeight: col.implicitHeight + 32 + flt
@@ -184,6 +185,23 @@ PanelWindow {
                         Layout.preferredWidth: 28; Layout.preferredHeight: 18
                         level: ccPanel.store.battery.percent
                         charging: ccPanel.store.battery.charging
+                    }
+                }
+                // Settings button: prominent and unmistakable
+                Rectangle {
+                    implicitWidth: 28; implicitHeight: 28; radius: 14
+                    color: setMA.containsMouse ? "#33c8f7ef" : "#18ffffff"
+                    border.color: setMA.containsMouse ? Theme.accent : "#33ffffff"
+                    border.width: 1
+                    scale: setMA.containsMouse ? 1.08 : 1.0
+                    Behavior on scale { NumberAnimation { duration: 140 } }
+                    Behavior on color { ColorAnimation { duration: 140 } }
+                    Behavior on border.color { ColorAnimation { duration: 140 } }
+                    C.Icon { anchors.centerIn: parent; width: 16; height: 16; kind: "gear"; tint: setMA.containsMouse ? Theme.accent : Theme.text }
+                    MouseArea {
+                        id: setMA; anchors.fill: parent
+                        hoverEnabled: true; cursorShape: Qt.PointingHandCursor
+                        onClicked: ccPanel.settingsRequested()
                     }
                 }
                 Rectangle {

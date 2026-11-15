@@ -62,6 +62,39 @@ Canvas {
             rrect(8.5, 8.5, 7, 7, 2); ctx.fill()
             seg(12, 1.5, 12, 4); seg(12, 20, 12, 22.5)
             seg(1.5, 12, 4, 12); seg(20, 12, 22.5, 12)
+        } else if (kind === "ram") {
+            // RAM module stick: horizontal PCB with edge connector notch and memory chips
+            ctx.globalAlpha = 0.18
+            rrect(2, 6, 20, 12, 2); ctx.fill()
+            ctx.globalAlpha = 1
+            rrect(2, 6, 20, 12, 2); ctx.stroke()
+            rrect(4.5, 8, 4, 6, 1); ctx.fill()
+            rrect(10, 8, 4, 6, 1); ctx.fill()
+            rrect(15.5, 8, 4, 6, 1); ctx.fill()
+            seg(2, 18, 9, 18)
+            seg(11, 18, 22, 18)
+        } else if (kind === "gpu") {
+            // Dedicated GPU / Graphics Card: I/O bracket on left, PCB, dual cooling fans
+            rrect(4, 5, 17, 13, 2.5); ctx.stroke()
+            seg(3, 3, 3, 19)
+            seg(7, 18, 14, 18)
+            ctx.beginPath(); ctx.arc(9, 11.5, 3, 0, Math.PI * 2); ctx.stroke()
+            ctx.beginPath(); ctx.arc(16, 11.5, 3, 0, Math.PI * 2); ctx.stroke()
+        } else if (kind === "drive") {
+            // Drive / Storage: drive body with platter & indicator
+            rrect(4, 3, 16, 18, 2.5); ctx.stroke()
+            ctx.beginPath(); ctx.arc(12, 10, 4.5, 0, Math.PI * 2); ctx.stroke()
+            dot(12, 10, 1.5)
+            dot(17, 18, 1)
+        } else if (kind === "network") {
+            // Network activity: up and down arrows
+            seg(8, 17, 8, 7); seg(5, 10, 8, 7); seg(11, 10, 8, 7)
+            seg(16, 7, 16, 17); seg(13, 14, 16, 17); seg(19, 14, 16, 17)
+        } else if (kind === "logout") {
+            // Logout: door with exit arrow
+            rrect(3, 3, 11, 18, 2); ctx.stroke()
+            dot(11, 12, 1)
+            seg(13, 12, 21, 12); seg(18, 9, 21, 12); seg(18, 15, 21, 12)
         } else if (kind === "thermo") {
             rrect(9.5, 3, 5, 12, 2.5); ctx.stroke()
             dot(12, 17.5, 3.2)
@@ -108,6 +141,35 @@ Canvas {
         } else if (kind === "restart") {
             ctx.beginPath(); ctx.arc(12, 12, 8, -1.6, 3.2, false); ctx.stroke()
             seg(12.2, 4, 8.8, 4); seg(12.2, 4, 12.2, 7.2)
+        } else if (kind === "gear") {
+            // Unmistakable mechanical gear: center circle with 8 clean teeth cogs
+            ctx.beginPath(); ctx.arc(12, 12, 4, 0, Math.PI * 2); ctx.stroke()
+            ctx.beginPath(); ctx.arc(12, 12, 7, 0, Math.PI * 2); ctx.stroke()
+            for (let i = 0; i < 8; i++) {
+                const a = i * Math.PI / 4
+                const cosA = Math.cos(a), sinA = Math.sin(a)
+                const nx = -sinA, ny = cosA
+                // Draw a 3px-wide rectangular tooth protruding from r=6.5 to r=10
+                ctx.beginPath()
+                ctx.moveTo(12 + cosA * 6.5 - nx * 1.6, 12 + sinA * 6.5 - ny * 1.6)
+                ctx.lineTo(12 + cosA * 10 - nx * 1.6, 12 + sinA * 10 - ny * 1.6)
+                ctx.lineTo(12 + cosA * 10 + nx * 1.6, 12 + sinA * 10 + ny * 1.6)
+                ctx.lineTo(12 + cosA * 6.5 + nx * 1.6, 12 + sinA * 6.5 + ny * 1.6)
+                ctx.fillStyle = tint
+                ctx.fill()
+            }
+        } else if (kind === "search") {
+            ctx.beginPath(); ctx.arc(10, 10, 6, 0, Math.PI * 2); ctx.stroke()
+            seg(14.5, 14.5, 20, 20)
+        } else if (kind === "grid") {
+            rrect(4, 4, 6, 6, 1.5); ctx.fill()
+            rrect(14, 4, 6, 6, 1.5); ctx.fill()
+            rrect(4, 14, 6, 6, 1.5); ctx.fill()
+            rrect(14, 14, 6, 6, 1.5); ctx.fill()
+        } else if (kind === "list") {
+            dot(5, 7, 1.5); seg(9, 7, 20, 7)
+            dot(5, 12, 1.5); seg(9, 12, 20, 12)
+            dot(5, 17, 1.5); seg(9, 17, 20, 17)
         } else if (kind === "play") {
             poly([[8, 5.5], [19, 12], [8, 18.5]], true)
         } else if (kind === "pause") {
@@ -129,6 +191,18 @@ Canvas {
             // Launcher glyph: nine rounded tiles in a three-by-three grid.
             for (const y of [2.5, 9.5, 16.5])
                 for (const x of [2.5, 9.5, 16.5]) { rrect(x, y, 5, 5, 1.6); ctx.fill() }
+        } else if (kind === "plus") {
+            seg(12, 5, 12, 19)
+            seg(5, 12, 19, 12)
+        } else if (kind === "trash") {
+            // Lid
+            seg(5, 6, 19, 6)
+            seg(9, 6, 9, 4); seg(9, 4, 15, 4); seg(15, 4, 15, 6)
+            // Can body
+            poly([[6, 6], [7.5, 20], [16.5, 20], [18, 6]], false)
+            // Rib lines
+            seg(10, 9, 10, 17)
+            seg(14, 9, 14, 17)
         } else if (kind === "up") {
             seg(12, 20, 12, 5); seg(6.5, 10.5, 12, 5); seg(17.5, 10.5, 12, 5)
         }

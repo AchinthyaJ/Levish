@@ -18,8 +18,11 @@ Scope {
 
     property int iconSize: 48
     property bool autoHide: false
+    property bool enabled: true
     property int bottomMargin: 10
     property string monitorName: ""
+    property real glassOpacity: 0.85
+    readonly property color glassColor: Qt.rgba(0.06, 0.08, 0.10, glassOpacity)
     property var pinned: []
 
     // Screens the dock should appear on: one named monitor (default), every monitor
@@ -45,6 +48,9 @@ Scope {
         let c = {}
         try { c = JSON.parse(raw) } catch (e) { console.warn("dock: config.json is not valid JSON") }
         const d = c.dock || {}
+        const t = c.theme || {}
+        if (t.opacity !== undefined) root.glassOpacity = Math.max(0.3, Math.min(1.0, Number(t.opacity)))
+        root.enabled = d.enabled !== false
         root.iconSize = clampInt(d.icon_size, 48, 24, 96)
         root.autoHide = d.auto_hide === true
         root.bottomMargin = clampInt(d.margin, 10, 0, 200)

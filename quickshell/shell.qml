@@ -1,4 +1,4 @@
-// Levish — Quickshell root. Bar + performance panel + control center.
+// Levish — Quickshell root. Unified Top Bar + performance panel + control center + power menu + dock + launcher + settings.
 import QtQuick
 import Quickshell
 import Quickshell.Io
@@ -9,10 +9,13 @@ import "dashboard"
 import "controls"
 import "dock"
 import "launcher"
+import "settings"
 
 ShellRoot {
     id: root
 
+    ThemeStore { id: themeStore }
+    readonly property var themeStoreObj: themeStore
     Data { id: dataStore }
     readonly property var store: dataStore
 
@@ -22,6 +25,9 @@ ShellRoot {
     readonly property var dockConfig: dockSettings
     readonly property var dockState: dockModel
     property bool launcherOpen: false
+    property bool powerOpen: false
+    property bool settingsOpen: false
+
     Connections {
         target: dockModel
         function onLauncherRequested() { root.launcherOpen = !root.launcherOpen }
@@ -45,9 +51,14 @@ ShellRoot {
         }
     }
 
+    // Settings window overlay
+    SettingsWindow {
+        themeStore: root.themeStoreObj
+        open: root.settingsOpen
+        onCloseRequested: root.settingsOpen = false
+    }
+
     // ── Performance panel hover logic ────────────────────────────────
-    // Grace period: moving the pointer from the island into the panel
-    // won't trigger a flicker-close.
     property bool overIsland: false
     property bool overPanel: false
 
@@ -60,19 +71,50 @@ ShellRoot {
     onOverIslandChanged: { if (overIsland) { closeGrace.stop(); panelState = true } else closeGrace.restart() }
     onOverPanelChanged:  { if (overPanel)  { closeGrace.stop(); panelState = true } else closeGrace.restart() }
 
-    // ── Control Center toggle ────────────────────────────────────────
+    // ── Control Center & Power Menu toggles ───────────────────────────
     property bool ccOpen: false
 
-    // The control centre closes when another window takes focus.
+    // Close control center and power menu on window focus change
     Connections {
         target: Hyprland
         function onRawEvent(event) {
-            if (root.ccOpen && (event.name === "activewindow" || event.name === "activewindowv2"))
+            if ((root.ccOpen || root.powerOpen) && (event.name === "activewindow" || event.name === "activewindowv2")) {
                 root.ccOpen = false
+                root.powerOpen = false
+            }
         }
     }
 
-    // One scope per screen: the bar and the two drop-downs that grow out of it.
+    // ── Control socket sender for power menu and shell actions ────────
+    Process {
+        id: ctrlProc
+        stdout: StdioCollector {}
+        stderr: StdioCollector {}
+        property string _pending: ""
+        property var _pendingCmd: []
+        onRunningChanged: {
+            if (!running && _pending !== "") {
+                command = _pendingCmd
+                _pending = ""
+                running = true
+            }
+        }
+    }
+
+    function sendAction(act) {
+        const json = JSON.stringify({ cmd: "action", action: act })
+        const script = "import socket,sys; s=socket.socket(socket.AF_UNIX); s.connect('/tmp/levish/control.sock'); s.sendall(sys.argv[1].encode()); s.shutdown(socket.SHUT_WR); print(s.recv(4096).decode())"
+        const cmd = ["python3", "-c", script, json]
+        if (ctrlProc.running) {
+            ctrlProc._pendingCmd = cmd
+            ctrlProc._pending = json
+        } else {
+            ctrlProc.command = cmd
+            ctrlProc.running = true
+        }
+    }
+
+    // One scope per screen: the unified top bar and the drop-downs that grow out of it
     Variants {
         model: Quickshell.screens
         delegate: Scope {
@@ -83,10 +125,27 @@ ShellRoot {
                 id: bar
                 screen: monitor.modelData
                 store: root.store
+                themeStore: root.themeStoreObj
                 onPerfHovered: (v) => root.overIsland = v
-                onStatusClicked: root.ccOpen = !root.ccOpen
+                onStatusClicked: {
+                    root.powerOpen = false
+                    root.settingsOpen = false
+                    root.ccOpen = !root.ccOpen
+                }
+                onPowerClicked: {
+                    root.ccOpen = false
+                    root.settingsOpen = false
+                    root.powerOpen = !root.powerOpen
+                }
+                onSettingsClicked: {
+                    root.ccOpen = false
+                    root.powerOpen = false
+                    root.settingsOpen = !root.settingsOpen
+                }
                 perfOpen: root.panelState
                 statusOpen: root.ccOpen
+                powerOpen: root.powerOpen
+                settingsOpen: root.settingsOpen
             }
 
             PerfPanel {
@@ -105,6 +164,19 @@ ShellRoot {
                 anchorWidth: bar.statusWidth
                 open: root.ccOpen
                 onCloseRequested: root.ccOpen = false
+                onSettingsRequested: {
+                    root.ccOpen = false
+                    root.settingsOpen = true
+                }
+            }
+
+            PowerMenu {
+                screen: monitor.modelData
+                anchorRight: bar.powerRight
+                anchorWidth: bar.powerWidth
+                open: root.powerOpen
+                onCloseRequested: root.powerOpen = false
+                onActionTriggered: (act) => root.sendAction(act)
             }
         }
     }

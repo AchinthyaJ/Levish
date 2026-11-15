@@ -1,33 +1,62 @@
 {
   "theme": {
-    "bg_primary": "#1a1a2e",
-    "bg_secondary": "#16213e",
-    "bg_tertiary": "#0f3460",
-    "accent": "#e94560",
-    "accent_secondary": "#533483",
-    "text_primary": "#eaeaea",
-    "text_secondary": "#a0a0b0",
-    "text_muted": "#606070",
-    "font_size": 14,
-    "radius": 12
+    "accent": "#7aa2f7",
+    "opacity": 0.7,
+    "radius": 28,
+    "font_family": "JetBrains Mono",
+    "preset": "Tokyo Night"
   },
   "bar": {
-    "height": 42,
-    "margin": 10,
-    "padding_h": 14
+    "height": 36,
+    "clock_format": "HH:mm",
+    "show_date": true,
+    "ws_width": 40,
+    "ws_height": 14,
+    "ws_radius": 7,
+    "show_seconds": true
   },
   "dock": {
+    "enabled": true,
     "icon_size": 48,
     "auto_hide": true,
-    "position": "bottom",
-    "margin": 10
+    "margin": 10,
+    "monitor": ""
   },
-  "osd": {
-    "timeout_ms": 2500,
-    "position": "bottom-center"
+  "launcher": {
+    "default_view": "grid",
+    "columns": 5
   },
-  "metrics_interval": 2,
-  "clock_format": "%H:%M",
-  "date_format": "%a %d",
-  "monitor": "eDP-1"
+  "shortcuts": [
+    {
+      "key": "SUPER, SPACE",
+      "action": "open_launcher",
+      "desc": "Toggle Application Launcher"
+    },
+    {
+      "key": "SUPER, C",
+      "action": "toggle_cc",
+      "desc": "Toggle Control Center"
+    },
+    {
+      "key": "SUPER, P",
+      "action": "toggle_perf",
+      "desc": "Toggle Performance Panel"
+    },
+    {
+      "key": "SUPER, B",
+      "action": "toggle_dock",
+      "desc": "Show/Hide Dock"
+    },
+    {
+      "key": "SUPER, L",
+      "action": "lock",
+      "desc": "Lock Session"
+    },
+    {
+      "key": "SUPER, ESCAPE",
+      "action": "power_menu",
+      "desc": "Open Power Menu"
+    }
+  ],
+  "metrics_interval": 0.5
 }

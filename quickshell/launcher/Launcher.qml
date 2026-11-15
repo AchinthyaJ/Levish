@@ -1,9 +1,11 @@
-// Application launcher, built in Quickshell. A pure-black, minimal panel: a quiet search
-// line and a grid of installed apps. Left-click launches; right-click pins or unpins
-// (pinned apps show a dot and appear in the dock). Escape or a click outside closes it.
+// Application launcher — Complete application menu for Levish.
+// Features Grid and List views, category filtering, search with keyboard-first navigation,
+// pinned applications section, and right-click pin/unpin persistence.
 import QtQuick
+import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
+import "../common" as C
 import "../common/Theme.js" as Theme
 
 PanelWindow {
@@ -12,31 +14,65 @@ PanelWindow {
     property bool open: false
     signal closeRequested()
 
-    readonly property int columns: 5
+    property string viewMode: "grid"    // "grid" or "list"
+    property string activeCategory: "All"
+    readonly property int gridColumns: 5
 
     visible: open
     anchors { top: true; bottom: true; left: true; right: true }
     exclusiveZone: 0
-    color: "#14000000"
+    color: "#22000000"
     WlrLayershell.namespace: "levish-launcher"
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
 
-    onOpenChanged: if (open) { search.text = ""; search.forceActiveFocus(); enter.restart() }
+    onOpenChanged: {
+        if (open) {
+            search.text = ""
+            activeCategory = "All"
+            search.forceActiveFocus()
+            enterAnim.restart()
+        }
+    }
 
-    // Visible apps, sorted by name and filtered by the query.
+    readonly property var categories: ["All", "Pinned", "Development", "Internet", "Multimedia", "Utilities", "System", "Games"]
+
+    // Visible apps, sorted by name, filtered by category and query
     readonly property var results: {
         dockState.appsRevision
         const q = search.text.trim().toLowerCase()
+        const cat = activeCategory
+        const apps = dockState.listOf(DesktopEntries.applications)
         const out = []
-        for (const a of dockState.listOf(DesktopEntries.applications)) {
+
+        for (const a of apps) {
             if (a.noDisplay) continue
+
+            // Category filter
+            if (cat === "Pinned") {
+                if (!dockState.isPinned(a)) continue
+            } else if (cat !== "All") {
+                const cats = String(a.categories || "").toLowerCase()
+                const hayCat = cat.toLowerCase()
+                let match = false
+                if (hayCat === "development" && (cats.includes("development") || cats.includes("ide") || cats.includes("programming"))) match = true
+                else if (hayCat === "internet" && (cats.includes("network") || cats.includes("webbrowser") || cats.includes("chat") || cats.includes("email"))) match = true
+                else if (hayCat === "multimedia" && (cats.includes("audio") || cats.includes("video") || cats.includes("graphics") || cats.includes("music"))) match = true
+                else if (hayCat === "utilities" && (cats.includes("utility") || cats.includes("accessories") || cats.includes("tools"))) match = true
+                else if (hayCat === "system" && (cats.includes("system") || cats.includes("settings") || cats.includes("terminal"))) match = true
+                else if (hayCat === "games" && (cats.includes("game"))) match = true
+                if (!match) continue
+            }
+
+            // Search query filter
             if (q.length > 0) {
-                const hay = (a.name + " " + (a.genericName || "") + " " + (a.keywords || "")).toLowerCase()
+                const hay = (a.name + " " + (a.genericName || "") + " " + (a.keywords || "") + " " + (a.id || "")).toLowerCase()
                 if (hay.indexOf(q) < 0) continue
             }
+
             out.push(a)
         }
+
         out.sort((x, y) => x.name.localeCompare(y.name))
         return out.slice(0, 300)
     }
@@ -47,161 +83,435 @@ PanelWindow {
         win.closeRequested()
     }
 
-    // Clicking outside the panel closes the launcher.
-    MouseArea { anchors.fill: parent; onClicked: win.closeRequested() }
+    // Dismiss when clicking outside panel
+    MouseArea {
+        anchors.fill: parent
+        onClicked: win.closeRequested()
+    }
 
     Rectangle {
         id: panel
-        width: Math.round(win.width * 0.28)     // ~28% of the screen width
-        height: Math.round(win.height * 0.44)   // ~44% of the screen height
+        width: Math.min(840, Math.round(win.width * 0.42))
+        height: Math.min(620, Math.round(win.height * 0.62))
         anchors.centerIn: parent
-        radius: 26
-        color: "#c7000000"          // translucent black: ~78% opaque
-        border.color: "#22ffffff"
+        radius: 24
+        color: Theme.glass
+        border.color: Theme.glassEdge
         border.width: 1
 
-        // Gentle opening: slight scale-up and fade-in.
         opacity: 0
-        scale: 0.96
-        function reveal() { opacity = 1; scale = 1 }
-        NumberAnimation { id: enter; target: panel; properties: "opacity,scale"; from: 0; to: 1; duration: 180; easing.type: Easing.OutCubic }
-        Connections {
-            target: win
-            function onOpenChanged() { if (win.open) panel.reveal() }
+        scale: 0.95
+        NumberAnimation {
+            id: enterAnim
+            target: panel
+            properties: "opacity,scale"
+            from: 0; to: 1
+            duration: 200
+            easing.type: Easing.OutCubic
         }
 
-        // Swallow clicks on the panel so they do not reach the outside-click handler.
-        MouseArea { anchors.fill: parent; onClicked: {} }
-
-        Text {
-            id: label
-            anchors { left: parent.left; top: parent.top; leftMargin: 24; topMargin: 20 }
-            text: "APPLICATIONS"
-            color: "#66ffffff"
-            font.pixelSize: 10
-            font.letterSpacing: 2
-            font.weight: Font.DemiBold
+        // Catch clicks within panel
+        MouseArea {
+            anchors.fill: parent
+            onClicked: {}
         }
 
-        TextInput {
-            id: search
-            anchors { left: parent.left; right: parent.right; top: label.bottom; leftMargin: 24; rightMargin: 24; topMargin: 10 }
-            height: 34
-            verticalAlignment: TextInput.AlignVCenter
-            color: Theme.text
-            font.pixelSize: 17
-            font.weight: Font.Light
-            clip: true
-            selectByMouse: true
-            focus: win.open
+        ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: 20
+            spacing: 12
 
-            Text {
-                anchors.fill: parent
-                verticalAlignment: Text.AlignVCenter
-                visible: search.text.length === 0
-                text: "Search"
-                color: "#44ffffff"
-                font.pixelSize: 17
-                font.weight: Font.Light
-            }
+            // ── Top Header: Title, Category Pills, View Mode Switcher ──────
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 12
 
-            Keys.onEscapePressed: win.closeRequested()
-            Keys.onReturnPressed: win.launch(win.results[grid.currentIndex])
-            Keys.onEnterPressed: win.launch(win.results[grid.currentIndex])
-            Keys.onDownPressed: grid.moveCurrentIndexDown()
-            Keys.onUpPressed: grid.moveCurrentIndexUp()
-            Keys.onRightPressed: grid.moveCurrentIndexRight()
-            Keys.onLeftPressed: grid.moveCurrentIndexLeft()
-        }
+                Text {
+                    text: "APPLICATIONS"
+                    color: Theme.accent
+                    font.pixelSize: 11
+                    font.letterSpacing: 2
+                    font.weight: Font.Bold
+                }
 
-        Rectangle {
-            id: divider
-            anchors { left: parent.left; right: parent.right; top: search.bottom; topMargin: 12; leftMargin: 24; rightMargin: 24 }
-            height: 1
-            color: "#1affffff"
-        }
+                Item { Layout.fillWidth: true }
 
-        GridView {
-            id: grid
-            anchors { left: parent.left; right: parent.right; top: divider.bottom; bottom: hint.top; leftMargin: 16; rightMargin: 16 }
-            anchors.topMargin: 10
-            anchors.bottomMargin: 8
-            clip: true
-            cellWidth: Math.floor(width / win.columns)
-            cellHeight: 104
-            model: win.results
-            boundsBehavior: Flickable.StopAtBounds
-            currentIndex: 0
-            onCountChanged: currentIndex = 0
-
-            delegate: Item {
-                required property var modelData
-                required property int index
-                width: grid.cellWidth
-                height: grid.cellHeight
-
-                readonly property bool selected: index === grid.currentIndex || cell.containsMouse
-
+                // View Mode Toggle (Grid / List)
                 Rectangle {
-                    anchors.fill: parent
-                    anchors.margins: 5
-                    radius: 18
-                    color: selected ? "#14ffffff" : "transparent"
-                    Behavior on color { ColorAnimation { duration: 150 } }
+                    implicitWidth: 64; implicitHeight: 28
+                    radius: 8
+                    color: "#18ffffff"
+                    border.color: "#22ffffff"
+                    border.width: 1
 
-                    Image {
-                        id: ico
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        y: 12
-                        width: 44; height: 44
-                        source: Quickshell.iconPath(modelData.icon, "application-x-executable")
-                        fillMode: Image.PreserveAspectFit
-                        asynchronous: true
-                        smooth: true
-                        mipmap: true
-                        transformOrigin: Item.Bottom
-                        scale: selected ? 1.08 : 1
-                        Behavior on scale { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
-                    }
-                    Text {
-                        anchors { left: parent.left; right: parent.right; top: ico.bottom; topMargin: 9; leftMargin: 8; rightMargin: 8 }
-                        text: modelData.name
-                        color: selected ? "#ffffff" : "#bfffffff"
-                        font.pixelSize: 11
-                        horizontalAlignment: Text.AlignHCenter
-                        elide: Text.ElideRight
-                        Behavior on color { ColorAnimation { duration: 150 } }
-                    }
-                    // Pinned indicator
-                    Rectangle {
-                        visible: win.dockState.isPinned(modelData)
-                        anchors { horizontalCenter: parent.horizontalCenter; bottom: parent.bottom; bottomMargin: 6 }
-                        width: 4; height: 4; radius: 2
-                        color: "#ffffff"
-                    }
-                }
+                    Row {
+                        anchors.centerIn: parent
+                        spacing: 2
 
-                MouseArea {
-                    id: cell
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    acceptedButtons: Qt.LeftButton | Qt.RightButton
-                    onEntered: grid.currentIndex = index
-                    onClicked: mouse => {
-                        if (mouse.button === Qt.RightButton) win.dockState.togglePin(modelData)
-                        else win.launch(modelData)
+                        Rectangle {
+                            width: 28; height: 22
+                            radius: 6
+                            color: win.viewMode === "grid" ? "#33ffffff" : "transparent"
+                            C.Icon {
+                                anchors.centerIn: parent
+                                width: 12; height: 12
+                                kind: "grid"
+                                tint: win.viewMode === "grid" ? Theme.accent : Theme.muted
+                            }
+                            MouseArea {
+                                anchors.fill: parent
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: win.viewMode = "grid"
+                            }
+                        }
+
+                        Rectangle {
+                            width: 28; height: 22
+                            radius: 6
+                            color: win.viewMode === "list" ? "#33ffffff" : "transparent"
+                            C.Icon {
+                                anchors.centerIn: parent
+                                width: 12; height: 12
+                                kind: "list"
+                                tint: win.viewMode === "list" ? Theme.accent : Theme.muted
+                            }
+                            MouseArea {
+                                anchors.fill: parent
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: win.viewMode = "list"
+                            }
+                        }
                     }
                 }
             }
-        }
 
-        Text {
-            id: hint
-            anchors { left: parent.left; right: parent.right; bottom: parent.bottom; bottomMargin: 14; leftMargin: 24; rightMargin: 24 }
-            text: "Enter to launch  ·  Right-click to pin"
-            color: "#55ffffff"
-            font.pixelSize: 10
-            horizontalAlignment: Text.AlignHCenter
+            // ── Search Input Box ──────────────────────────────────────────
+            Rectangle {
+                Layout.fillWidth: true
+                implicitHeight: 42
+                radius: 12
+                color: "#18ffffff"
+                border.color: search.activeFocus ? Theme.accent : "#22ffffff"
+                border.width: 1
+                Behavior on border.color { ColorAnimation { duration: 150 } }
+
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.leftMargin: 12
+                    anchors.rightMargin: 12
+                    spacing: 8
+
+                    C.Icon {
+                        width: 16; height: 16
+                        kind: "search"
+                        tint: search.activeFocus ? Theme.accent : Theme.muted
+                    }
+
+                    TextInput {
+                        id: search
+                        Layout.fillWidth: true
+                        verticalAlignment: TextInput.AlignVCenter
+                        color: Theme.text
+                        font.pixelSize: 15
+                        font.weight: Font.Normal
+                        clip: true
+                        selectByMouse: true
+                        focus: win.open
+
+                        Text {
+                            anchors.fill: parent
+                            verticalAlignment: Text.AlignVCenter
+                            visible: search.text.length === 0
+                            text: "Type to search applications…"
+                            color: "#55ffffff"
+                            font.pixelSize: 15
+                        }
+
+                        Keys.onEscapePressed: win.closeRequested()
+                        Keys.onReturnPressed: {
+                            if (win.viewMode === "grid") {
+                                if (win.results.length > grid.currentIndex) win.launch(win.results[grid.currentIndex])
+                            } else {
+                                if (win.results.length > list.currentIndex) win.launch(win.results[list.currentIndex])
+                            }
+                        }
+                        Keys.onEnterPressed: {
+                            if (win.viewMode === "grid") {
+                                if (win.results.length > grid.currentIndex) win.launch(win.results[grid.currentIndex])
+                            } else {
+                                if (win.results.length > list.currentIndex) win.launch(win.results[list.currentIndex])
+                            }
+                        }
+                        Keys.onDownPressed: {
+                            if (win.viewMode === "grid") grid.moveCurrentIndexDown()
+                            else list.incrementCurrentIndex()
+                        }
+                        Keys.onUpPressed: {
+                            if (win.viewMode === "grid") grid.moveCurrentIndexUp()
+                            else list.decrementCurrentIndex()
+                        }
+                        Keys.onRightPressed: if (win.viewMode === "grid") grid.moveCurrentIndexRight()
+                        Keys.onLeftPressed:  if (win.viewMode === "grid") grid.moveCurrentIndexLeft()
+                    }
+
+                    // Clear button
+                    Rectangle {
+                        visible: search.text.length > 0
+                        implicitWidth: 20; implicitHeight: 20
+                        radius: 10
+                        color: clearMA.containsMouse ? "#33ffffff" : "#18ffffff"
+                        C.Icon {
+                            anchors.centerIn: parent
+                            width: 10; height: 10
+                            kind: "close"
+                            tint: Theme.muted
+                        }
+                        MouseArea {
+                            id: clearMA
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: { search.text = ""; search.forceActiveFocus() }
+                        }
+                    }
+                }
+            }
+
+            // ── Category Chips ────────────────────────────────────────────
+            Row {
+                Layout.fillWidth: true
+                spacing: 6
+
+                Repeater {
+                    model: win.categories
+                    delegate: Rectangle {
+                        required property string modelData
+                        implicitWidth: catText.implicitWidth + 18
+                        implicitHeight: 24
+                        radius: 12
+                        readonly property bool isActive: win.activeCategory === modelData
+                        color: isActive ? Theme.accent : (catMA.containsMouse ? "#22ffffff" : "#12ffffff")
+                        border.color: isActive ? Theme.accent : "#18ffffff"
+                        border.width: 1
+                        Behavior on color { ColorAnimation { duration: 140 } }
+
+                        Text {
+                            id: catText
+                            anchors.centerIn: parent
+                            text: modelData
+                            color: isActive ? "#111827" : Theme.text
+                            font.pixelSize: 11
+                            font.weight: isActive ? Font.DemiBold : Font.Normal
+                        }
+
+                        MouseArea {
+                            id: catMA
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                win.activeCategory = modelData
+                                grid.currentIndex = 0
+                                list.currentIndex = 0
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Divider line
+            Rectangle {
+                Layout.fillWidth: true
+                implicitHeight: 1
+                color: "#18ffffff"
+            }
+
+            // ── App Views: GRID or LIST ────────────────────────────────────
+            Item {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+
+                // GRID VIEW
+                GridView {
+                    id: grid
+                    anchors.fill: parent
+                    visible: win.viewMode === "grid"
+                    clip: true
+                    cellWidth: Math.floor(width / win.gridColumns)
+                    cellHeight: 96
+                    model: win.results
+                    boundsBehavior: Flickable.StopAtBounds
+                    currentIndex: 0
+                    onCountChanged: currentIndex = 0
+
+                    delegate: Item {
+                        required property var modelData
+                        required property int index
+                        width: grid.cellWidth
+                        height: grid.cellHeight
+
+                        readonly property bool selected: index === grid.currentIndex || cellMA.containsMouse
+
+                        Rectangle {
+                            anchors.fill: parent
+                            anchors.margins: 4
+                            radius: 14
+                            color: selected ? "#1fffffff" : "transparent"
+                            border.color: selected ? "#33ffffff" : "transparent"
+                            border.width: 1
+                            Behavior on color { ColorAnimation { duration: 140 } }
+
+                            Image {
+                                id: gridIco
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                y: 10
+                                width: 42; height: 42
+                                source: Quickshell.iconPath(modelData.icon, "application-x-executable")
+                                fillMode: Image.PreserveAspectFit
+                                asynchronous: true
+                                smooth: true
+                                mipmap: true
+                                scale: selected ? 1.08 : 1
+                                Behavior on scale { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
+                            }
+
+                            Text {
+                                anchors { left: parent.left; right: parent.right; top: gridIco.bottom; topMargin: 6; leftMargin: 6; rightMargin: 6 }
+                                text: modelData.name
+                                color: selected ? "#ffffff" : Theme.text
+                                font.pixelSize: 11
+                                horizontalAlignment: Text.AlignHCenter
+                                elide: Text.ElideRight
+                                maximumLineCount: 1
+                            }
+
+                            // Pinned dot
+                            Rectangle {
+                                visible: win.dockState.isPinned(modelData)
+                                anchors { horizontalCenter: parent.horizontalCenter; bottom: parent.bottom; bottomMargin: 5 }
+                                width: 4; height: 4; radius: 2
+                                color: Theme.accent
+                            }
+                        }
+
+                        MouseArea {
+                            id: cellMA
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            acceptedButtons: Qt.LeftButton | Qt.RightButton
+                            onEntered: grid.currentIndex = index
+                            onClicked: mouse => {
+                                if (mouse.button === Qt.RightButton) win.dockState.togglePin(modelData)
+                                else win.launch(modelData)
+                            }
+                        }
+                    }
+                }
+
+                // LIST VIEW
+                ListView {
+                    id: list
+                    anchors.fill: parent
+                    visible: win.viewMode === "list"
+                    clip: true
+                    spacing: 4
+                    model: win.results
+                    boundsBehavior: Flickable.StopAtBounds
+                    currentIndex: 0
+                    onCountChanged: currentIndex = 0
+
+                    delegate: Rectangle {
+                        required property var modelData
+                        required property int index
+                        width: list.width
+                        implicitHeight: 40
+                        radius: 10
+
+                        readonly property bool selected: index === list.currentIndex || listMA.containsMouse
+                        color: selected ? "#1fffffff" : "transparent"
+                        border.color: selected ? "#33ffffff" : "transparent"
+                        border.width: 1
+                        Behavior on color { ColorAnimation { duration: 140 } }
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: 10
+                            anchors.rightMargin: 12
+                            spacing: 12
+
+                            Image {
+                                Layout.preferredWidth: 26
+                                Layout.preferredHeight: 26
+                                source: Quickshell.iconPath(modelData.icon, "application-x-executable")
+                                fillMode: Image.PreserveAspectFit
+                                asynchronous: true
+                                smooth: true
+                            }
+
+                            Text {
+                                text: modelData.name
+                                color: selected ? "#ffffff" : Theme.text
+                                font.pixelSize: 13
+                                font.weight: Font.Medium
+                            }
+
+                            Text {
+                                visible: (modelData.genericName || "").length > 0
+                                text: "— " + (modelData.genericName || "")
+                                color: Theme.muted
+                                font.pixelSize: 11
+                                elide: Text.ElideRight
+                                Layout.fillWidth: true
+                            }
+
+                            Item { Layout.fillWidth: true; visible: !(modelData.genericName || "").length }
+
+                            // Pinned badge in list
+                            Rectangle {
+                                visible: win.dockState.isPinned(modelData)
+                                implicitWidth: 48; implicitHeight: 18
+                                radius: 4
+                                color: "#22ffffff"
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: "PINNED"
+                                    color: Theme.accent
+                                    font.pixelSize: 8
+                                    font.weight: Font.Bold
+                                }
+                            }
+                        }
+
+                        MouseArea {
+                            id: listMA
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            acceptedButtons: Qt.LeftButton | Qt.RightButton
+                            onEntered: list.currentIndex = index
+                            onClicked: mouse => {
+                                if (mouse.button === Qt.RightButton) win.dockState.togglePin(modelData)
+                                else win.launch(modelData)
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ── Footer Hint ───────────────────────────────────────────────
+            RowLayout {
+                Layout.fillWidth: true
+                Text {
+                    text: win.results.length + " applications found"
+                    color: Theme.muted
+                    font.pixelSize: 10
+                }
+                Item { Layout.fillWidth: true }
+                Text {
+                    text: "Enter: Launch  ·  Right-Click: Pin/Unpin  ·  Esc: Close"
+                    color: "#55ffffff"
+                    font.pixelSize: 10
+                }
+            }
         }
     }
 }
