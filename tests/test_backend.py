@@ -2,7 +2,9 @@
 """
 Unit tests for Levish backend components.
 """
+import json
 import sys
+import tempfile
 import unittest
 import asyncio
 from pathlib import Path
@@ -21,22 +23,64 @@ from power.power import PowerManager
 
 
 class TestConfig(unittest.TestCase):
-    def test_config_defaults(self):
-        cfg = Config()
-        self.assertEqual(cfg.get("theme.bg_primary"), "#1a1a2e")
-        self.assertEqual(cfg.get("bar.height"), 42)
+    """All tests use a temporary directory; the user's config/ is never read or written."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.dir = Path(self._tmp.name)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def test_defaults_when_file_missing(self):
+        cfg = Config(self.dir / "config.json")
+        self.assertEqual(cfg.get("metrics_interval"), 2)
+        # ThemeStore owns these; the backend must not supply defaults for them.
+        self.assertIsNone(cfg.get("bar.height"))
+        self.assertIsNone(cfg.get("theme.accent"))
+
+    def test_reads_backend_keys_and_ignores_theme_keys(self):
+        path = self.dir / "config.json"
+        path.write_text(json.dumps({"metrics_interval": 5, "bar": {"height": 36}}))
+        cfg = Config(path)
+        self.assertEqual(cfg.get("metrics_interval"), 5)
+        self.assertEqual(cfg.get("bar.height"), 36)
+
+    def test_invalid_json_falls_back_to_defaults(self):
+        path = self.dir / "config.json"
+        path.write_text("{not json")
+        cfg = Config(path)
         self.assertEqual(cfg.get("metrics_interval"), 2)
 
-    def test_config_set_get(self):
-        cfg = Config()
-        cfg.set("theme.font_size", 14)
-        self.assertEqual(cfg.get("theme.font_size"), 14)
+    def test_non_object_root_falls_back_to_defaults(self):
+        path = self.dir / "config.json"
+        path.write_text("[1, 2, 3]")
+        cfg = Config(path)
+        self.assertEqual(cfg.get("metrics_interval"), 2)
 
-    def test_pinned_apps(self):
-        pinned = PinnedApps()
-        dock = pinned.get_dock()
-        self.assertIsInstance(dock, list)
-        self.assertTrue(len(dock) > 0)
+    def test_set_persists_and_preserves_other_keys(self):
+        path = self.dir / "config.json"
+        path.write_text(json.dumps({"bar": {"height": 36}, "wallpaper": {"fit": "cover"}}))
+        cfg = Config(path)
+        cfg.set("metrics_interval", 3)
+        saved = json.loads(path.read_text())
+        self.assertEqual(saved["metrics_interval"], 3)
+        self.assertEqual(saved["bar"]["height"], 36)
+        self.assertEqual(saved["wallpaper"]["fit"], "cover")
+        self.assertFalse((self.dir / "config.json.tmp").exists())
+
+    def test_pinned_apps_roundtrip(self):
+        pinned = PinnedApps(self.dir / "pinned-apps.json")
+        self.assertEqual(pinned.get_dock(), [])
+        pinned.set_dock(["firefox.desktop", "kitty.desktop"])
+        reloaded = PinnedApps(self.dir / "pinned-apps.json")
+        self.assertEqual(reloaded.get_dock(), ["firefox.desktop", "kitty.desktop"])
+
+    def test_recent_apps_are_capped_and_deduplicated(self):
+        pinned = PinnedApps(self.dir / "pinned-apps.json")
+        for app in ["a", "b", "c", "a"]:
+            pinned.add_recent(app, max_items=2)
+        self.assertEqual(pinned.get_recent(), ["a", "c"])
 
 
 class TestEventBus(unittest.IsolatedAsyncioTestCase):

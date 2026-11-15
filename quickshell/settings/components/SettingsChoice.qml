@@ -6,7 +6,7 @@ Row {
     id: c
     property var options: []      // [{ value, label }]
     property var current
-    property color accent: "#c8f7ef"
+    property color accent: Theme.accent
     signal picked(var value)
     spacing: 4
 
@@ -18,8 +18,8 @@ Row {
             height: 28
             width: Math.max(64, label.implicitWidth + 24)
             radius: 8
-            color: selected ? Qt.rgba(c.accent.r, c.accent.g, c.accent.b, 0.22) : (ma.containsMouse ? "#18ffffff" : "#0cffffff")
-            border.color: selected ? c.accent : "#1effffff"
+            color: selected ? Qt.rgba(c.accent.r, c.accent.g, c.accent.b, 0.22) : (ma.containsMouse ? Theme.surfaceEdge : Theme.controlFill)
+            border.color: selected ? c.accent : Theme.controlEdge
             border.width: 1
 
             Text {

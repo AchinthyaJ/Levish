@@ -11,6 +11,8 @@ import "dock"
 import "launcher"
 import "settings"
 import "wallpaper"
+import "notifications"
+import "osd"
 
 ShellRoot {
     id: root
@@ -80,13 +82,23 @@ ShellRoot {
         function toggleDock(): void { themeStore.set("dock.enabled", !themeStore.dockEnabled) }
         // Used by the Settings wallpaper page and by scripts: sets the wallpaper image path.
         function setWallpaper(path: string): void { themeStore.set("wallpaper.path", path) }
+        function setWallpaperFit(fit: string): void { themeStore.set("wallpaper.fit", fit) }
+        function toggleWallpaperRotate(): void { themeStore.set("wallpaper.auto_rotate", !themeStore.wallpaperAutoRotate) }
         // Read-only status for scripts and debugging: config state and the active wallpaper path.
-        function wallpaperStatus(): string { return themeStore.status + " " + themeStore.wallpaperPath }
+        function wallpaperStatus(): string { return themeStore.status + " " + themeStore.wallpaperPath + " (" + themeStore.wallpaperFit + ")" }
     }
+
+    // ── Notifications: one server for the session, one popup window ──
+    NotificationService { id: notifications; themeStore: root.themeStoreObj }
+    NotificationPopups { service: notifications; themeStore: root.themeStoreObj }
+
+    // ── On-screen display: volume, brightness and keyboard layout ──
+    Osd { themeStore: root.themeStoreObj }
 
     // Settings window overlay
     SettingsWindow {
         themeStore: root.themeStoreObj
+        notifications: notifications
         open: root.settingsOpen
         onCloseRequested: root.settingsOpen = false
     }
@@ -156,6 +168,11 @@ ShellRoot {
         delegate: Scope {
             id: monitor
             required property var modelData
+
+            Wallpaper {
+                screen: monitor.modelData
+                themeStore: root.themeStoreObj
+            }
 
             Bar {
                 id: bar

@@ -1,6 +1,14 @@
-"""Levish configuration manager."""
+"""Levish backend configuration.
+
+Ownership: the QML ThemeStore (quickshell/common/ThemeStore.qml) is the single owner of
+config/config.json. It validates and writes every appearance, bar, dock, launcher and
+wallpaper key. This module reads the same file but only the keys the Python backend itself
+consumes, so the two sides can no longer disagree about defaults.
+
+Keys owned by the backend:
+  metrics_interval   seconds between system metric samples
+"""
 import json
-import os
 import threading
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -9,26 +17,9 @@ PROJECT_ROOT = Path(__file__).parent.parent
 CONFIG_DIR = PROJECT_ROOT / "config"
 STATE_DIR = Path("/tmp/levish")
 
+# Only backend-owned keys. Theme, bar, dock and wallpaper defaults live in ThemeStore.qml.
 DEFAULTS: Dict[str, Any] = {
-    "theme": {
-        "bg_primary": "#1a1a2e",
-        "bg_secondary": "#16213e",
-        "bg_tertiary": "#0f3460",
-        "accent": "#e94560",
-        "accent_secondary": "#533483",
-        "text_primary": "#eaeaea",
-        "text_secondary": "#a0a0b0",
-        "text_muted": "#606070",
-        "font_size": 13,
-        "radius": 12,
-    },
-    "bar": {"height": 42, "margin": 10, "padding_h": 14},
-    "dock": {"icon_size": 48, "auto_hide": False, "position": "bottom", "margin": 10},
-    "osd": {"timeout_ms": 2500, "position": "bottom-center"},
     "metrics_interval": 2,
-    "clock_format": "%H:%M",
-    "date_format": "%a %d",
-    "monitor": "eDP-1",
 }
 
 
@@ -44,34 +35,39 @@ def _deep_merge(base: dict, override: dict) -> dict:
 
 
 class Config:
-    """Thread-safe configuration manager with deep-merge defaults."""
+    """Thread-safe reader for config.json, merged over backend defaults.
 
-    CONFIG_FILE = CONFIG_DIR / "config.json"
+    `path` defaults to config/config.json. Tests pass a temporary path so they never touch
+    the user's live configuration.
+    """
 
-    def __init__(self) -> None:
+    def __init__(self, path: Optional[Path] = None) -> None:
+        self.path = Path(path) if path is not None else CONFIG_DIR / "config.json"
         self._lock = threading.Lock()
         self._data: Dict[str, Any] = {}
-        CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+        self.path.parent.mkdir(parents=True, exist_ok=True)
         self.reload()
 
     def reload(self) -> None:
         """Load config from disk and merge with defaults."""
         loaded: Dict[str, Any] = {}
-        if self.CONFIG_FILE.exists():
+        if self.path.exists():
             try:
-                with open(self.CONFIG_FILE, "r", encoding="utf-8") as f:
+                with open(self.path, "r", encoding="utf-8") as f:
                     loaded = json.load(f)
-            except (json.JSONDecodeError, OSError) as exc:
-                print(f"[config] Warning: failed to load config: {exc}")
+                if not isinstance(loaded, dict):
+                    raise ValueError("root is not an object")
+            except (json.JSONDecodeError, OSError, ValueError) as exc:
+                print(f"[config] Warning: failed to load config, using defaults: {exc}")
+                loaded = {}
         with self._lock:
             self._data = _deep_merge(DEFAULTS, loaded)
 
     def get(self, key: str, default: Any = None) -> Any:
         """Get a config value by dot-separated key path."""
         with self._lock:
-            parts = key.split(".")
             node: Any = self._data
-            for part in parts:
+            for part in key.split("."):
                 if isinstance(node, dict) and part in node:
                     node = node[part]
                 else:
@@ -79,7 +75,11 @@ class Config:
             return node
 
     def set(self, key: str, value: Any) -> None:
-        """Set a config value by dot-separated key path and save."""
+        """Set a config value by dot-separated key path and save.
+
+        Writes only through this method for backend-owned keys. Settings UI values must go
+        through ThemeStore.
+        """
         with self._lock:
             parts = key.split(".")
             node = self._data
@@ -89,23 +89,23 @@ class Config:
         self.save()
 
     def save(self) -> None:
-        """Persist current config to disk."""
-        CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+        """Persist current config to disk atomically (write temp file, then replace)."""
+        self.path.parent.mkdir(parents=True, exist_ok=True)
         try:
             with self._lock:
-                data = dict(self._data)
-            with open(self.CONFIG_FILE, "w", encoding="utf-8") as f:
+                data = json.loads(json.dumps(self._data))
+            tmp = self.path.with_suffix(self.path.suffix + ".tmp")
+            with open(tmp, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2)
+            tmp.replace(self.path)
         except OSError as exc:
             print(f"[config] Warning: failed to save config: {exc}")
 
     def all(self) -> Dict[str, Any]:
         """Return a copy of the full config dict."""
         with self._lock:
-            return dict(self._data)
+            return json.loads(json.dumps(self._data))
 
-
-PINNED_APPS_FILE = CONFIG_DIR / "pinned-apps.json"
 
 _PINNED_DEFAULTS: Dict[str, Any] = {
     "dock": [],
@@ -117,30 +117,36 @@ _PINNED_DEFAULTS: Dict[str, Any] = {
 class PinnedApps:
     """Load/save pinned and recent app lists from config/pinned-apps.json."""
 
-    def __init__(self) -> None:
+    def __init__(self, path: Optional[Path] = None) -> None:
+        self.path = Path(path) if path is not None else CONFIG_DIR / "pinned-apps.json"
         self._lock = threading.Lock()
         self._data: Dict[str, Any] = {}
-        CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+        self.path.parent.mkdir(parents=True, exist_ok=True)
         self._load()
 
     def _load(self) -> None:
         loaded: Dict[str, Any] = {}
-        if PINNED_APPS_FILE.exists():
+        if self.path.exists():
             try:
-                with open(PINNED_APPS_FILE, "r", encoding="utf-8") as f:
+                with open(self.path, "r", encoding="utf-8") as f:
                     loaded = json.load(f)
-            except (json.JSONDecodeError, OSError) as exc:
+                if not isinstance(loaded, dict):
+                    raise ValueError("root is not an object")
+            except (json.JSONDecodeError, OSError, ValueError) as exc:
                 print(f"[config] Warning: failed to load pinned apps: {exc}")
+                loaded = {}
         with self._lock:
             self._data = _deep_merge(_PINNED_DEFAULTS, loaded)
 
     def save(self) -> None:
-        CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+        self.path.parent.mkdir(parents=True, exist_ok=True)
         try:
             with self._lock:
-                data = dict(self._data)
-            with open(PINNED_APPS_FILE, "w", encoding="utf-8") as f:
+                data = json.loads(json.dumps(self._data))
+            tmp = self.path.with_suffix(self.path.suffix + ".tmp")
+            with open(tmp, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2)
+            tmp.replace(self.path)
         except OSError as exc:
             print(f"[config] Warning: failed to save pinned apps: {exc}")
 

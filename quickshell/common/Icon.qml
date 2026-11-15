@@ -158,6 +158,20 @@ Canvas {
                 ctx.fillStyle = tint
                 ctx.fill()
             }
+        } else if (kind === "image") {
+            // Picture frame with mountains and sun
+            rrect(3, 4, 18, 16, 2.5); ctx.stroke()
+            dot(8, 9, 1.8)
+            poly([[4, 18], [9, 13], [13, 17], [16, 14], [20, 18]], false)
+        } else if (kind === "folder") {
+            // Folder with tab
+            ctx.beginPath()
+            ctx.moveTo(3, 6); ctx.lineTo(9, 6); ctx.lineTo(11, 8); ctx.lineTo(21, 8)
+            ctx.arcTo(21, 19, 19, 19, 2)
+            ctx.arcTo(3, 19, 3, 17, 2)
+            ctx.closePath(); ctx.stroke()
+        } else if (kind === "check") {
+            ctx.beginPath(); ctx.moveTo(4, 12); ctx.lineTo(9, 17); ctx.lineTo(20, 6); ctx.stroke()
         } else if (kind === "search") {
             ctx.beginPath(); ctx.arc(10, 10, 6, 0, Math.PI * 2); ctx.stroke()
             seg(14.5, 14.5, 20, 20)
@@ -205,6 +219,17 @@ Canvas {
             seg(14, 9, 14, 17)
         } else if (kind === "up") {
             seg(12, 20, 12, 5); seg(6.5, 10.5, 12, 5); seg(17.5, 10.5, 12, 5)
+        } else if (kind === "shuffle") {
+            // Crossing arrows for random / shuffle
+            seg(4, 7, 8, 7); seg(8, 7, 16, 17); seg(16, 17, 20, 17)
+            seg(17, 14, 20, 17); seg(17, 20, 20, 17)
+            seg(4, 17, 8, 17); seg(8, 17, 11, 13.25)
+            seg(13, 10.75, 16, 7); seg(16, 7, 20, 7)
+            seg(17, 4, 20, 7); seg(17, 10, 20, 7)
+        } else if (kind === "refresh") {
+            // Circular reload arrow
+            ctx.beginPath(); ctx.arc(12, 12, 7.5, -1.6, 3.2, false); ctx.stroke()
+            seg(12.2, 4.5, 8.8, 4.5); seg(12.2, 4.5, 12.2, 7.8)
         }
     }
 }

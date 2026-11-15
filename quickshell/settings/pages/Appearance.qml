@@ -1,4 +1,5 @@
 import QtQuick
+import "../../common/Theme.js" as Theme
 import QtQuick.Layouts
 import QtQuick.Controls
 import "../components"
@@ -13,10 +14,10 @@ Flickable {
     readonly property var resetPaths: ["theme.accent", "theme.opacity", "dock.opacity"]
     readonly property color accent: themeStore.accentColor
     readonly property var swatches: [
-        { name: "Aqua", hex: "#c8f7ef" }, { name: "Turquoise", hex: "#2dd4bf" },
+        { name: "Aqua", hex: Theme.accent }, { name: "Turquoise", hex: "#2dd4bf" },
         { name: "Cyan", hex: "#38bdf8" }, { name: "Blue", hex: "#60a5fa" },
-        { name: "Purple", hex: "#a78bfa" }, { name: "Green", hex: "#34d399" },
-        { name: "Orange", hex: "#fb923c" }, { name: "Red", hex: "#f87171" }
+        { name: "Purple", hex: "#a78bfa" }, { name: "Green", hex: Theme.ok },
+        { name: "Orange", hex: Theme.warning }, { name: "Red", hex: Theme.danger }
     ]
     property string hexError: ""
 
@@ -43,7 +44,7 @@ Flickable {
                             width: 22; height: 22; radius: 11
                             color: modelData.hex
                             border.width: page.themeStore.accentColor === modelData.hex ? 2 : 0
-                            border.color: "#f5f9fd"
+                            border.color: Theme.textPrimary
                             MouseArea {
                                 anchors.fill: parent
                                 cursorShape: Qt.PointingHandCursor
@@ -60,9 +61,9 @@ Flickable {
                     width: 120; height: 30
                     text: page.themeStore.accentColor
                     font.pixelSize: 12
-                    color: "#f5f9fd"
+                    color: Theme.textPrimary
                     placeholderText: "#rrggbb"
-                    background: Rectangle { radius: 8; color: "#14ffffff"; border.color: "#22ffffff" }
+                    background: Rectangle { radius: 8; color: Theme.controlFill; border.color: Theme.controlEdge }
                     onEditingFinished: {
                         page.hexError = ""
                         if (!page.themeStore.set("theme.accent", text.trim())) page.hexError = "Use a 6-digit hex colour."

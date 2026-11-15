@@ -23,59 +23,91 @@ PanelWindow {
     margins { bottom: 0 }
     readonly property real bottomGap: Math.max(pad, dockConfig.bottomMargin)
     implicitWidth: body.width + pad * 2
-    implicitHeight: tipRoom + body.height + bottomGap
+    // While auto-hidden the surface itself shrinks to the 16 px reveal strip. Resizing the layer
+    // surface makes the compositor redraw it, so the dock cannot linger as stale pixels, and no
+    // empty transparent area is left reserved above the screen edge.
+    readonly property bool hiddenNow: autoHide && !shown
+    readonly property real fullHeight: tipRoom + body.height + bottomGap
+    implicitHeight: hiddenNow ? 16 : fullHeight
     exclusiveZone: 0
     WlrLayershell.exclusionMode: ExclusionMode.Ignore
     color: "transparent"
     WlrLayershell.namespace: "levish-dock"
     WlrLayershell.layer: WlrLayer.Top
 
-    onAutoHideChanged: shown = !autoHide
+    // Toggling auto-hide re-runs the reveal check: turning it on hides the dock unless the pointer
+    // is already over it, and turning it off keeps the dock shown and cancels any pending hide.
+    onAutoHideChanged: {
+        console.log("dock-trace autoHide changed to " + autoHide)  // TEMP
+        if (autoHide) {
+            shown = pointerInside
+            revealChanged()
+        } else {
+            hideDelay.stop()
+            shown = true
+        }
+    }
 
     // Input mask: covers the interaction area so clicks outside pass to windows below
-    mask: Region { item: win.autoHide ? (win.shown ? interactionArea : zone) : interactionArea }
+    mask: Region { item: interactionArea }
 
     Item {
         id: interactionArea
         anchors.fill: parent
     }
 
-    // Auto-hide reveal zone: a comfortable 16 px strip at the screen bottom when hidden,
-    // and the full dock area when shown so moving to tooltips never triggers hiding.
+    // Auto-hide reveal zone: the whole surface. When hidden the surface is the 16 px strip; when
+    // shown it covers the dock area so moving to tooltips never triggers hiding.
     Item {
         id: zone
-        x: 0
-        width: win.width
-        y: win.shown ? 0 : win.height - 16
-        height: win.height - y
+        anchors.fill: parent
 
+        // Always enabled: disabling a hovered HoverHandler can leave `hovered` stale. revealChanged()
+        // ignores hover while auto-hide is off.
         HoverHandler {
-            id: reveal
-            enabled: win.autoHide
-            onHoveredChanged: {
-                if (hovered) {
-                    hideDelay.stop()
-                    win.shown = true
-                } else {
-                    hideDelay.restart()
-                }
-            }
+            id: stripHover
+            onHoveredChanged: win.revealChanged()
+        }
+    }
+
+    // Hover is tracked on both the strip and the dock body. A HoverHandler is not reliable on a
+    // sibling that sits under a hover-enabled MouseArea (the app cells), so the body's own handler
+    // is what keeps the dock open while the pointer is over an app.
+    readonly property bool pointerInside: stripHover.hovered || bodyHover.hovered
+
+    function revealChanged() {
+        console.log("dock-trace reveal inside=" + win.pointerInside + " autoHide=" + win.autoHide + " shown=" + win.shown + " strip=" + stripHover.hovered + " body=" + bodyHover.hovered)  // TEMP
+        if (!win.autoHide) return
+        if (win.pointerInside) {
+            hideDelay.stop()
+            win.shown = true
+        } else {
+            hideDelay.restart()
         }
     }
 
     Timer {
         id: hideDelay
         interval: 600
-        onTriggered: if (!reveal.hovered && win.autoHide) win.shown = false
+        onTriggered: {
+            console.log("dock-trace timer inside=" + win.pointerInside + " autoHide=" + win.autoHide + " shown=" + win.shown)  // TEMP
+            if (!win.pointerInside && win.autoHide) win.shown = false
+        }
     }
 
     Item {
         id: body
         x: win.pad
-        y: win.autoHide && !win.shown ? win.height : win.tipRoom
+        // Parked below the full height (outside the 16 px hidden surface) while auto-hidden.
+        y: win.hiddenNow ? win.fullHeight : win.tipRoom
         width: row.width + Theme.dockInnerPad * 2
         height: row.height + Theme.dockInnerPad * 2
         Behavior on y { NumberAnimation { duration: 240; easing.type: Easing.OutCubic } }
+
+        HoverHandler {
+            id: bodyHover
+            onHoveredChanged: win.revealChanged()
+        }
 
         // Subtle multi-layer glass shadow
         Repeater {

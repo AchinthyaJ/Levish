@@ -8,9 +8,7 @@ set -euo pipefail
 LEVISH_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 QS_DIR="$LEVISH_DIR/quickshell"
 BACKEND="$LEVISH_DIR/backend/main.py"
-OSD="$LEVISH_DIR/scripts/osd_listener.py"
 LOG_BACK="/tmp/levish-backend.log"
-LOG_OSD="/tmp/levish-osd.log"
 LOG_QS="/tmp/levish-quickshell.log"
 
 echo "[levish] ━━━ Starting Levish ━━━"
@@ -29,9 +27,8 @@ echo "[levish] Backend started (PID $!) — log: $LOG_BACK"
 qs -p "$QS_DIR" -d > "$LOG_QS" 2>&1
 echo "[levish] Quickshell started — log: $LOG_QS"
 
-# ── Start OSD listener ───────────────────────────────────────
-python3 "$OSD" > "$LOG_OSD" 2>&1 &
-echo "[levish] OSD listener started (PID $!)"
+# The OSD is part of the Quickshell UI now (quickshell/osd/Osd.qml). scripts/osd_listener.py is no
+# longer started: it duplicated the backend's volume and brightness polling.
 
 echo "[levish] ━━━ Levish is running ━━━"
 echo "  Stop with: $LEVISH_DIR/scripts/stop.sh"

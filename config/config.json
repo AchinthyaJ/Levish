@@ -1,7 +1,7 @@
 {
   "theme": {
-    "accent": "#7aa2f7",
-    "opacity": 0.78,
+    "accent": "#c8f7ef",
+    "opacity": 0.63,
     "radius": 28,
     "font_family": "JetBrains Mono",
     "preset": "Tokyo Night"
@@ -60,5 +60,8 @@
       "desc": "Open Power Menu"
     }
   ],
-  "metrics_interval": 0.5
+  "metrics_interval": 0.5,
+  "wallpaper": {
+    "path": "/home/achinthyaj/Pictures/Wallpaper/launcherbackground.png"
+  }
 }

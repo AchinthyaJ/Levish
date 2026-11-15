@@ -55,9 +55,25 @@ Item {
     property int dockMargin: 10
     property string dockMonitor: ""      // "" = first screen, "all" = every screen, or a screen name
 
-    // Wallpaper. Empty path = no wallpaper layer. Empty folder = ~/Pictures/wallpapers.
-    property string wallpaperPath: ""
+    // Wallpaper. Empty path = fallback to /usr/share/hypr/wall0.png.
+    property string wallpaperPath: "/usr/share/hypr/wall0.png"
     property string wallpaperFolder: ""
+    property string wallpaperFit: "cover"
+    property bool wallpaperAutoRotate: false
+    property int wallpaperInterval: 1800
+    property var wallpaperList: []
+
+    // Notifications. Do-not-disturb is runtime state and lives in the notification service, not here.
+    property bool notificationsEnabled: true
+    property int notificationTimeout: 5000
+    property string notificationPosition: "top-right"
+    property int notificationMaxVisible: 3
+
+    // On-screen display: which events show it, and for how long.
+    property bool osdVolume: true
+    property bool osdBrightness: true
+    property bool osdKeyboard: true
+    property int osdTimeout: 2000
 
     property string launcherDefaultView: "grid"
     property int launcherColumns: 5
@@ -88,8 +104,21 @@ Item {
 
         "launcher.default_view":{ prop: "launcherDefaultView",  kind: "enum",  def: "grid", choices: ["grid", "list"] },
         "launcher.columns":     { prop: "launcherColumns",      kind: "int",   def: 5, min: 3, max: 8 },
-        "wallpaper.path":       { prop: "wallpaperPath",        kind: "string",def: "", max: 4096 },
-        "wallpaper.folder":     { prop: "wallpaperFolder",      kind: "string",def: "", max: 4096 }
+        "wallpaper.path":       { prop: "wallpaperPath",        kind: "string",def: "/usr/share/hypr/wall0.png", max: 4096 },
+        "wallpaper.folder":     { prop: "wallpaperFolder",      kind: "string",def: "", max: 4096 },
+        "wallpaper.fit":        { prop: "wallpaperFit",         kind: "enum",  def: "cover", choices: ["cover", "contain", "stretch", "tile"] },
+        "wallpaper.auto_rotate":{ prop: "wallpaperAutoRotate",  kind: "bool",  def: false },
+        "wallpaper.interval":   { prop: "wallpaperInterval",    kind: "int",   def: 1800, min: 30, max: 86400 },
+
+        "notifications.enabled":      { prop: "notificationsEnabled",  kind: "bool",  def: true },
+        "notifications.timeout_ms":   { prop: "notificationTimeout",   kind: "int",   def: 5000, min: 1000, max: 60000 },
+        "notifications.position":     { prop: "notificationPosition",  kind: "enum",  def: "top-right", choices: ["top-right", "top-left", "bottom-right", "bottom-left"] },
+        "notifications.max_visible":  { prop: "notificationMaxVisible", kind: "int",   def: 3, min: 1, max: 6 },
+
+        "osd.volume":           { prop: "osdVolume",            kind: "bool",  def: true },
+        "osd.brightness":       { prop: "osdBrightness",        kind: "bool",  def: true },
+        "osd.keyboard":         { prop: "osdKeyboard",          kind: "bool",  def: true },
+        "osd.timeout_ms":       { prop: "osdTimeout",           kind: "int",   def: 2000, min: 800, max: 6000 }
     })
 
     // Keys the settings app may reset, in display order.
@@ -220,6 +249,7 @@ Item {
         if (store.status === "loading") return pairs.map(p => p[0])
         const next = JSON.parse(JSON.stringify(store.doc))
         let changed = false
+        const applied = []
         for (const [path, value] of pairs) {
             const e = schema[path]
             const v = e ? coerce(e, value) : undefined
@@ -232,14 +262,32 @@ Item {
                 next[parts[0]][parts[1]] = v
             }
             store[e.prop] = v
+            applied.push({ path: path, value: String(v), time: Qt.formatTime(new Date(), "HH:mm:ss") })
             changed = true
         }
-        if (changed) _persist(next)
+        if (changed) {
+            _persist(next)
+            // Session-only history for the Settings overview. It is never written to config.json.
+            store.recentChanges = applied.concat(store.recentChanges).slice(0, 8)
+        }
         return rejected
     }
 
+    // Last changes made in this session, newest first. Not persisted.
+    property var recentChanges: []
+
     function set(path, value) {
         return setMany([[path, value]]).length === 0
+    }
+
+    // Convenience function for setting wallpaper list
+    function setWallpaperList(list) {
+        if (Array.isArray(list)) store.wallpaperList = list
+    }
+
+    // Compatibility alias: saveSetting("wallpaper", "path", val) -> set("wallpaper.path", val)
+    function saveSetting(category, key, value) {
+        return set(category + "." + key, value)
     }
 
     // Resets the given paths (default: every schema key) to their defaults.

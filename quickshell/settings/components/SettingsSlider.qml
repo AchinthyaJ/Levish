@@ -9,12 +9,13 @@ Item {
     property real to: 100
     property real step: 1
     property real value: 0
-    property color accent: "#c8f7ef"
+    property color accent: Theme.accent
     property string suffix: ""
     property int decimals: 0
     signal committed(real value)
 
-    width: 240; height: 30
+    // 240 px when there is room, shrinking with the row on narrow windows.
+    width: Math.max(120, Math.min(240, parent ? parent.width : 240)); height: 30
 
     // `live` follows `value` and previews a drag without breaking the binding to the config value.
     property real live: value
@@ -30,7 +31,7 @@ Item {
         id: track
         anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter }
         height: 4; radius: 2
-        color: "#22ffffff"
+        color: Theme.controlEdge
         Rectangle {
             width: parent.width * s.frac
             height: parent.height; radius: 2
@@ -39,7 +40,7 @@ Item {
     }
     Rectangle {
         width: 14; height: 14; radius: 7
-        color: "#f5f9fd"
+        color: Theme.textPrimary
         x: track.width * s.frac - width / 2
         anchors.verticalCenter: parent.verticalCenter
     }

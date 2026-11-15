@@ -10,15 +10,15 @@ Rectangle {
 
     implicitWidth: label.implicitWidth + 28
     height: 30; radius: 9
-    color: ma.containsMouse ? (danger ? "#33e94560" : "#22ffffff") : "#14ffffff"
-    border.color: danger ? "#55e94560" : "#22ffffff"
+    color: ma.containsMouse ? (danger ? Theme.dangerEdge : Theme.controlEdge) : Theme.controlFill
+    border.color: danger ? Theme.dangerEdge : Theme.controlEdge
     border.width: 1
 
     Text {
         id: label
         anchors.centerIn: parent
         text: b.text
-        color: b.danger ? "#f0708a" : Theme.text
+        color: b.danger ? Theme.danger : Theme.text
         font.pixelSize: 12
         font.weight: Font.Medium
     }

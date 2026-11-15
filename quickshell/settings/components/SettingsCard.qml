@@ -11,8 +11,8 @@ Rectangle {
     Layout.fillWidth: true
     implicitHeight: body.implicitHeight + 32
     radius: 14
-    color: "#12ffffff"
-    border.color: "#18ffffff"
+    color: Theme.surface
+    border.color: Theme.surfaceEdge
     border.width: 1
 
     Column {

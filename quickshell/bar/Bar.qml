@@ -45,8 +45,6 @@ PanelWindow {
 
     function switchWorkspace(wid) {
         bar.pendingDeleteWs = -1
-        try { Hyprland.dispatch("hl.dsp.focus({ workspace = " + wid + " })") } catch(e) {}
-        try { Hyprland.dispatch('hl.dispatch("workspace", "' + wid + '")') } catch(e) {}
         wsProc.running = false
         wsProc.command = ["hyprctl", "dispatch", "workspace", String(wid)]
         wsProc.running = true
@@ -71,8 +69,6 @@ PanelWindow {
             const id = Number(list[i].id)
             if (id !== wid) { targetWs = id; break }
         }
-        try { Hyprland.dispatch("hl.dsp.focus({ workspace = " + targetWs + " })") } catch(e) {}
-        try { Hyprland.dispatch('hl.dispatch("movetoworkspacesilent", "' + targetWs + ',workspace:' + wid + '")') } catch(e) {}
         delProc.running = false
         delProc.command = ["hyprctl", "dispatch", "movetoworkspacesilent", targetWs + ",workspace:" + wid]
         delProc.running = true
