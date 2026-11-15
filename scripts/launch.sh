@@ -21,14 +21,13 @@ mkdir -p /tmp/levish
 
 # ── Start backend ─────────────────────────────────────────────
 python3 "$BACKEND" > "$LOG_BACK" 2>&1 &
-echo "[levish] Backend started (PID $!) — log: $LOG_BACK"
+BACKEND_PID=$!
+disown "$BACKEND_PID" 2>/dev/null || true
+echo "[levish] Backend started (PID $BACKEND_PID) — log: $LOG_BACK"
 
 # ── Start Quickshell UI (bar + panels) ────────────────────────
 qs -p "$QS_DIR" -d > "$LOG_QS" 2>&1
 echo "[levish] Quickshell started — log: $LOG_QS"
-
-# The OSD is part of the Quickshell UI now (quickshell/osd/Osd.qml). scripts/osd_listener.py is no
-# longer started: it duplicated the backend's volume and brightness polling.
 
 echo "[levish] ━━━ Levish is running ━━━"
 echo "  Stop with: $LEVISH_DIR/scripts/stop.sh"
