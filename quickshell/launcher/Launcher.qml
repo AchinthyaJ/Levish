@@ -14,9 +14,10 @@ PanelWindow {
     property bool open: false
     signal closeRequested()
 
-    property string viewMode: "grid"    // "grid" or "list"
+    property var themeStore: null
+    property string viewMode: themeStore ? themeStore.launcherDefaultView : "grid"    // "grid" or "list"
     property string activeCategory: "All"
-    readonly property int gridColumns: 5
+    readonly property int gridColumns: themeStore ? themeStore.launcherColumns : 5
 
     visible: open
     anchors { top: true; bottom: true; left: true; right: true }

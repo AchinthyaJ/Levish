@@ -47,7 +47,7 @@ Item {
             radius: Theme.radiusIsland
             color: Theme.glass
             border.color: island.hovered ? "#66ffffff" : Theme.glassEdge
-            border.width: 1
+            border.width: 0
             scale: island.hovered && island.hoverable && island.lift ? 1.02 : 1
             Behavior on scale { NumberAnimation { duration: 180; easing.type: Easing.OutBack } }
             Behavior on border.color { ColorAnimation { duration: 180 } }

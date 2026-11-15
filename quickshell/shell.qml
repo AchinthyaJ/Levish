@@ -10,6 +10,7 @@ import "controls"
 import "dock"
 import "launcher"
 import "settings"
+import "wallpaper"
 
 ShellRoot {
     id: root
@@ -20,7 +21,7 @@ ShellRoot {
     readonly property var store: dataStore
 
     // ── Application dock: one instance, shared by every dock window ──
-    DockSettings { id: dockSettings }
+    DockSettings { id: dockSettings; themeStore: root.themeStoreObj }
     DockModel { id: dockModel; dockConfig: dockSettings }
     readonly property var dockConfig: dockSettings
     readonly property var dockState: dockModel
@@ -43,12 +44,44 @@ ShellRoot {
                 dockConfig: root.dockConfig
             }
             Launcher {
+                themeStore: root.themeStoreObj
                 screen: modelData
                 dockState: root.dockState
                 open: root.launcherOpen && modelData === dockSettings.targetScreens[0]
                 onCloseRequested: root.launcherOpen = false
             }
         }
+    }
+
+    // ── Keyboard shortcuts ─────────────────────────────────────────────
+    // Hyprland binds call scripts/levish-ipc.sh, which calls these functions:
+    //   qs -p <quickshell dir> ipc call levish <function>
+    IpcHandler {
+        target: "levish"
+
+        function toggleLauncher(): void { root.launcherOpen = !root.launcherOpen }
+        function toggleControlCenter(): void {
+            root.powerOpen = false
+            root.settingsOpen = false
+            root.ccOpen = !root.ccOpen
+        }
+        function togglePerformance(): void { root.panelState = !root.panelState }
+        function togglePowerMenu(): void {
+            root.ccOpen = false
+            root.settingsOpen = false
+            root.powerOpen = !root.powerOpen
+        }
+        function toggleSettings(): void {
+            root.ccOpen = false
+            root.powerOpen = false
+            root.settingsOpen = !root.settingsOpen
+        }
+        // Persisted: showing or hiding the dock is a configuration change, like in Settings.
+        function toggleDock(): void { themeStore.set("dock.enabled", !themeStore.dockEnabled) }
+        // Used by the Settings wallpaper page and by scripts: sets the wallpaper image path.
+        function setWallpaper(path: string): void { themeStore.set("wallpaper.path", path) }
+        // Read-only status for scripts and debugging: config state and the active wallpaper path.
+        function wallpaperStatus(): string { return themeStore.status + " " + themeStore.wallpaperPath }
     }
 
     // Settings window overlay
@@ -113,6 +146,9 @@ ShellRoot {
             ctrlProc.running = true
         }
     }
+
+    // Wallpaper: applied through hyprpaper whenever the chosen path changes.
+    WallpaperService { themeStore: root.themeStoreObj }
 
     // One scope per screen: the unified top bar and the drop-downs that grow out of it
     Variants {

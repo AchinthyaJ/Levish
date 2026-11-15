@@ -1,8 +1,7 @@
-// Dock settings, read from the same files the Python backend already uses:
-//   config/config.json       "dock" block: icon_size, auto_hide, margin, and an optional
-//                            "monitor" (falls back to the top-level "monitor" key)
+// Dock wiring. Dock preferences come from the shared ThemeStore instance (common/ThemeStore.qml),
+// so the settings app and the dock always agree. This file adds only what ThemeStore does not own:
 //   config/pinned-apps.json  "dock" list of desktop-entry IDs, e.g. "kitty", "com.microsoft.VSCode"
-// Both files are watched, so edits apply without restarting the shell.
+// The pinned file is watched, so edits apply without restarting the shell.
 import QtQuick
 import Quickshell
 import Quickshell.Io
@@ -10,23 +9,27 @@ import Quickshell.Io
 Scope {
     id: root
 
+    // Passed in from shell.qml.
+    required property var themeStore
+
     // Quickshell.shellDir is <project>/quickshell; the config lives one level up.
     readonly property string projectDir: {
         const d = String(Quickshell.shellDir).replace(/^file:\/\//, "").replace(/\/+$/, "")
         return d.substring(0, d.lastIndexOf("/"))
     }
 
-    property int iconSize: 48
-    property bool autoHide: false
-    property bool enabled: true
-    property int bottomMargin: 10
-    property string monitorName: ""
-    property real glassOpacity: 0.85
-    readonly property color glassColor: Qt.rgba(0.06, 0.08, 0.10, glassOpacity)
-    property var pinned: []
+    readonly property int iconSize: themeStore.dockIconSize
+    readonly property bool autoHide: themeStore.dockAutoHide
+    readonly property bool enabled: themeStore.dockEnabled
+    readonly property int bottomMargin: themeStore.dockMargin
+    readonly property string monitorName: themeStore.dockMonitor
+    readonly property color glassColor: themeStore.dockGlass
 
-    // Screens the dock should appear on: one named monitor (default), every monitor
-    // ("all"), or the first screen when the named one is not connected.
+    property var pinned: []
+    property var pinnedDoc: ({})
+
+    // Screens the dock should appear on: every screen ("all"), the named one,
+    // or the first screen when the named one is not connected or no name is set.
     readonly property var targetScreens: {
         const all = []
         const src = Quickshell.screens
@@ -36,28 +39,6 @@ Scope {
         if (hit.length > 0) return [hit[0]]
         return all.length > 0 ? [all[0]] : []
     }
-
-    function clampInt(v, fallback, lo, hi) {
-        if (v === undefined || v === null) return fallback
-        const n = Number(v)
-        if (!isFinite(n)) return fallback
-        return Math.max(lo, Math.min(hi, Math.round(n)))
-    }
-
-    function applyConfig(raw) {
-        let c = {}
-        try { c = JSON.parse(raw) } catch (e) { console.warn("dock: config.json is not valid JSON") }
-        const d = c.dock || {}
-        const t = c.theme || {}
-        if (t.opacity !== undefined) root.glassOpacity = Math.max(0.3, Math.min(1.0, Number(t.opacity)))
-        root.enabled = d.enabled !== false
-        root.iconSize = clampInt(d.icon_size, 48, 24, 96)
-        root.autoHide = d.auto_hide === true
-        root.bottomMargin = clampInt(d.margin, 10, 0, 200)
-        root.monitorName = String(d.monitor || c.monitor || "")
-    }
-
-    property var pinnedDoc: ({})
 
     function applyPinned(raw) {
         try {
@@ -79,15 +60,10 @@ Scope {
     }
 
     FileView {
-        path: root.projectDir + "/config/config.json"
-        watchChanges: true
-        onFileChanged: reload()
-        onLoaded: root.applyConfig(text())
-    }
-    FileView {
         id: pinnedFile
         path: root.projectDir + "/config/pinned-apps.json"
         watchChanges: true
+        atomicWrites: true
         onFileChanged: reload()
         onLoaded: root.applyPinned(text())
     }

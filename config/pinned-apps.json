@@ -1,5 +1,16 @@
 {
-  "dock": ["brave", "thunar", "kitty", "code"],
-  "launcher_pinned": ["brave", "thunar", "kitty", "code", "discord"],
+  "dock": [
+    "brave",
+    "thunar",
+    "kitty",
+    "code"
+  ],
+  "launcher_pinned": [
+    "brave",
+    "thunar",
+    "kitty",
+    "code",
+    "discord"
+  ],
   "recent": []
 }

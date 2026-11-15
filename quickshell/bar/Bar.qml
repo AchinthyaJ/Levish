@@ -117,20 +117,10 @@ PanelWindow {
         id: barBackground
         anchors.fill: parent
         color: bar.themeStore ? bar.themeStore.glassColor : Theme.glass
-        border.color: bar.themeStore ? bar.themeStore.glassEdge : Theme.glassEdge
-        border.width: 1
+        // No outline: the bar is a plain glass surface, and windows start directly below it.
+        border.width: 0
 
         Behavior on color { ColorAnimation { duration: 180 } }
-        Behavior on border.color { ColorAnimation { duration: 180 } }
-
-        // Bottom border line
-        Rectangle {
-            anchors.bottom: parent.bottom
-            anchors.left: parent.left
-            anchors.right: parent.right
-            height: 1
-            color: bar.themeStore ? bar.themeStore.glassEdge : Theme.glassEdge
-        }
 
         // Cancel workspace delete mode if clicked elsewhere on the bar
         MouseArea {

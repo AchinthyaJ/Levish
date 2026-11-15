@@ -1,7 +1,7 @@
 {
   "theme": {
     "accent": "#7aa2f7",
-    "opacity": 0.7,
+    "opacity": 0.78,
     "radius": 28,
     "font_family": "JetBrains Mono",
     "preset": "Tokyo Night"
@@ -10,16 +10,18 @@
     "height": 36,
     "clock_format": "HH:mm",
     "show_date": true,
-    "ws_width": 40,
+    "ws_width": 39,
     "ws_height": 14,
     "ws_radius": 7,
-    "show_seconds": true
+    "show_seconds": true,
+    "show_gpu": true,
+    "show_temp": true
   },
   "dock": {
     "enabled": true,
     "icon_size": 48,
     "auto_hide": true,
-    "margin": 10,
+    "margin": 8,
     "monitor": ""
   },
   "launcher": {
