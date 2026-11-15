@@ -1,0 +1,13 @@
+# Python
+__pycache__/
+*.pyc
+
+# Runtime and editor leftovers
+*.bak
+*.tmp
+.DS_Store
+
+# Local editor and tool state
+.vscode/
+.idea/
+.claude/settings.local.json

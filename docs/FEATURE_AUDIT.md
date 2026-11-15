@@ -306,3 +306,87 @@ Not done:
 - Keyboard focus moving into the controls on a page (toggles, sliders). Only the sidebar and results are keyboard-driven.
 - Visual highlight on the target row after scrolling.
 - Verifying the scroll offset on pages with long content in a live session.
+
+### Phase 3, third area: clipboard history (text)
+
+Done (clean reload in the shell log; the watcher is not yet exercised live):
+- `quickshell/clipboard/ClipboardService.qml`: `wl-paste --watch` runs only while the feature is enabled. It is event-driven, so nothing polls.
+- Opt-in: off by default (`clipboard.enabled`). History is memory-only and cleared on shell restart. Nothing is written to disk.
+- Text only. Copies over 20 000 characters are skipped. Repeated copies move to the top rather than duplicating.
+- Settings → Clipboard: enable switch, items kept (5–200), Copy, Pin/Unpin, Delete, Clear unpinned. Pinned items survive trimming.
+- Copy back uses `wl-copy` with the text passed as an argument, so quotes and `$(...)` are treated as text.
+
+Not done:
+- Launcher integration (search and paste from the clipboard history).
+- Clearing the history on clipboard-manager secret hints (password managers). Not verified.
+- Image clipboard entries.
+
+Lesson recorded: Quickshell does not see a folder created after the UI process started. After adding a new folder, restart the UI (`qs -p quickshell -d`). Without a restart, imports of that folder fail and the whole configuration is rejected.
+
+### Bar: tray spacing, left-click menus, duplicate Settings button
+
+Done (clean reload in the shell log; not checked visually):
+- Background apps (system tray) sit in a zone matched to the status group: same height and padding, 8 px between icons.
+- Left click on a tray app opens its menu when it has one (`display`), or activates it when it has none. Right click opens the menu, or runs the secondary action.
+- The Settings gear is removed from the Control Center. The top bar keeps its button, so Settings has one entry point.
+
+Not verified: tooltips on tray icons (tray titles were not checked against this Quickshell build), and how the native menu positions on your monitor layout.
+
+### Tray menus: root cause and fix
+
+- Root cause (from the shell log after clicks): `Cannot display PlatformMenuEntry as quickshell was not started in QApplication mode`. Tray menus need the root file to declare `//@ pragma UseQApplication`. Without it, every left click failed silently.
+- Fix: the pragma is now the first line of `quickshell/shell.qml`. The UI was restarted. The log loads with zero errors.
+- Tray icon names: icons are now resolved through the icon theme (`Quickshell.iconPath`), since tray icons are usually theme names.
+- Registered tray items (checked with `busctl --user get-property org.kde.StatusNotifierWatcher /StatusNotifierWatcher org.kde.StatusNotifierWatcher RegisteredStatusNotifierItems`): Steam and one other app were registered at the time of the check.
+- Quickshell registers only `org.kde.StatusNotifierWatcher`, not the freedesktop name. Apps that look only for the freedesktop name will not appear. This was not observed in this session.
+- Not verified: the menu itself opening, and its position. Check by left-clicking Steam's tray icon; a menu error would appear in `/run/user/1000/quickshell/by-id/*/log.log`.
+
+### Tray: icons and styled menus (second pass)
+
+- Icons: Quickshell already supplies a usable URL for tray icons (`image://icon/…` for theme names, `image://qspixmap/…` for pixmaps). My earlier `Quickshell.iconPath` wrapper broke them, so it is gone. Verified from the live log: `icon=image://icon/steam_tray_mono?path=…`.
+- Menus: the native menu cannot be styled, so the menu is drawn in QML with Levish's glass look.
+  - `bar/TrayMenu.qml`: popup under the clicked icon, plus a full-screen click catcher that closes it on any press outside.
+  - `bar/TrayMenuEntries.qml`: items from `QsMenuOpener`, with icons, separators, disabled state and submenus expanded inline (recursive).
+  - Choosing an item triggers it (`triggered()`) and closes the menu.
+- Debug line removed. The UI was restarted; the log loads with zero errors.
+- Not verified: clicking an icon and seeing the menu. Known gaps: checkbox and radio items show no check mark yet; the catcher blocks clicks on other windows while a menu is open; there is no keyboard navigation in the menu.
+
+### Batch: keyboard, displays, night light, caffeine
+
+Done (clean reload in the shell log; night light and caffeine not yet switched on live):
+- Keyboard & Shortcuts (read-only): lists every Hyprland bind from hyprctl (93 at check time), with conflict detection for the same key combination in the same submap. Editing is not offered.
+- Displays (read-only): name, description, resolution, refresh rate, scale, position and available modes for each monitor. Changing a display is not offered (needs confirm-or-revert first).
+- Night light: saved in config.json (off by default, 2500–6500 K). Runs hyprsunset, which stays running as a daemon (checked). Restarts when the temperature changes. Reports "unavailable" if hyprsunset fails.
+- Caffeine: runtime only. Holds a systemd idle inhibitor while on, released when turned off or the shell restarts.
+- Installed: hyprlock, hypridle, hyprsunset.
+
+Still not done (by area): Control Center rework; launcher calculator, emoji, clipboard and wallpaper providers; notification grouping and per-app mute; OSD for media; top bar and dock customisation, including the dock hide bug (blocked on noctalia-qs); wallpaper library, per-monitor and transitions; desktop widgets; lock screen and idle (hyprlock and hypridle installed but not configured); display changes with rollback; privacy indicators; calendar and weather; plugins; profiles, import/export and backup; diagnostics; accessibility (reduced motion, keyboard focus into controls); basic and advanced modes; live previews.
+
+### Lock screen and idle
+
+Done (clean reload; the lock itself has NOT been tested, to avoid locking the session during development):
+- quickshell/lock/LockService.qml writes two Levish-owned configs to ~/.local/state/levish: hyprlock.conf (wallpaper background, accent-coloured input field, large clock and date) and hypridle.conf (auto-lock timeout, lock before sleep, resume display). The user config in ~/.config/hypr is never touched.
+- Authentication is unchanged: hyprlock still checks the normal password through PAM.
+- hypridle runs only when auto-lock is set above 0 minutes or lock-before-sleep is on. Both default to off, so no idle daemon starts by default.
+- Settings → Lock & Idle: auto-lock timeout (0–60 min), lock before sleep, Lock now.
+- Configs are rewritten when the wallpaper or accent changes.
+
+Not verified: that hyprlock accepts the generated config (only lockable by running it), and that hypridle locks on timeout.
+
+Known gap: the power-menu and Control Center Lock action runs "loginctl lock-session" first, which reports success even when nothing listens for it. It locks only while hypridle is running. Switching that action to the Levish hyprlock config is a separate change, not made yet.
+
+### Lock from the top bar and Control Center
+
+- The power-menu Lock and the Control Center Lock both send the backend "lock" action. backend/power/power.py now starts hyprlock with the Levish config ($XDG_STATE_HOME/levish/hyprlock.conf) first, detached and not awaited, so the menu returns at once.
+- A second lock request while the first is still running does nothing.
+- Fallbacks if the config or hyprlock is missing: loginctl, then hyprlock with its default config, then swaylock.
+- Tested with a fake hyprlock on PATH: the Levish config path is passed and a second request is suppressed. Unit tests pass (14 of 14). The backend was restarted.
+- Not tested: an actual lock. Test it by pressing the power-menu Lock and unlocking with your password.
+
+### Release pass (v1.0.0)
+
+- Dock auto-hide (A9, "refuses to hide again"): fixed. Cause: the hover signal read the derived `pointerInside` binding, which still held the previous value at that moment, so a leave event looked like "still inside" and nothing scheduled a hide. Each hover handler now acts on its own `hovered` value, and the hide timer checks both handlers when it fires. Verified against the layer surface height (16 px hidden, 126 px shown): four hover-in and leave cycles all hid correctly; resting in the body kept it open; moving within the body did not hide it; leaving hid it. TEMP trace logs removed. One earlier run stopped revealing on hover; a shell reload cleared it, and the same sequence on a fresh instance did not reproduce it. Watch for it.
+- Keyboard brightness keys: added `brightnessUp` and `brightnessDown` IPC functions (5 % steps through the backend's `adjust_brightness`). Added to the Hyprland keybind list. Four rapid presses were all applied (23 % → 3 %) and restored to 23 %.
+- Control socket commands now go through an ordered queue, so no relative step is dropped.
+- Release cleanup: Eww stack, unrelated installer script, unused scripts, legacy `settings.json` and the unused `shortcuts` list removed. Native lock option removed (never connected). Weather module off by default. Wi-Fi device no longer hard-coded. Version 1.0.0 added (`VERSION`, `quickshell/common/Version.js`).
+- Open before release: `config/config.json` still holds a home-directory wallpaper path; the native lock files under `quickshell/lock/` (`LockSurface.qml`, `PamAuth.qml`, `pam/passwd`) are untracked and unused; no LICENSE yet; screenshots not yet replaced.

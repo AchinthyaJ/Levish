@@ -187,23 +187,7 @@ PanelWindow {
                         charging: ccPanel.store.battery.charging
                     }
                 }
-                // Settings button: prominent and unmistakable
-                Rectangle {
-                    implicitWidth: 28; implicitHeight: 28; radius: 14
-                    color: setMA.containsMouse ? "#33c8f7ef" : "#18ffffff"
-                    border.color: setMA.containsMouse ? Theme.accent : "#33ffffff"
-                    border.width: 1
-                    scale: setMA.containsMouse ? 1.08 : 1.0
-                    Behavior on scale { NumberAnimation { duration: 140 } }
-                    Behavior on color { ColorAnimation { duration: 140 } }
-                    Behavior on border.color { ColorAnimation { duration: 140 } }
-                    C.Icon { anchors.centerIn: parent; width: 16; height: 16; kind: "gear"; tint: setMA.containsMouse ? Theme.accent : Theme.text }
-                    MouseArea {
-                        id: setMA; anchors.fill: parent
-                        hoverEnabled: true; cursorShape: Qt.PointingHandCursor
-                        onClicked: ccPanel.settingsRequested()
-                    }
-                }
+                // The Settings button lives in the top bar only, so Settings has one entry point.
                 Rectangle {
                     implicitWidth: 24; implicitHeight: 24; radius: 12
                     color: closeMA.containsMouse ? "#22ffffff" : "transparent"

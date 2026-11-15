@@ -3,11 +3,11 @@ import QtQuick.Layouts
 import QtQuick.Controls
 import Quickshell.Io
 import "../../common/Theme.js" as Theme
+import "../../common/Version.js" as Version
 import "../components"
 
 // Overview dashboard: a visual summary of the live desktop. Every value comes from the config
-// service or a real runtime check. Nothing is invented: where Levish cannot know a value (for
-// example a release version), the page says so instead.
+// service or a real runtime check. Nothing is invented.
 Flickable {
     id: page
     property var themeStore
@@ -266,7 +266,7 @@ Flickable {
 
         Text {
             Layout.fillWidth: true
-            text: "Levish does not record a release version in this repository, so none is shown. See About for runtime details."
+            text: "Levish " + Version.version + ". See About for runtime details."
             color: Theme.muted
             font.pixelSize: Theme.fontCaption
             wrapMode: Text.Wrap

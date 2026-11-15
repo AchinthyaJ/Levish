@@ -1,4 +1,6 @@
+//@ pragma UseQApplication
 // Levish — Quickshell root. Unified Top Bar + performance panel + control center + power menu + dock + launcher + settings.
+// UseQApplication lets tray items open their native menus (SystemTrayItem.display needs it).
 import QtQuick
 import Quickshell
 import Quickshell.Io
@@ -13,6 +15,10 @@ import "settings"
 import "wallpaper"
 import "notifications"
 import "osd"
+import "clipboard"
+import "hypr"
+import "session"
+import "lock"
 
 ShellRoot {
     id: root
@@ -61,35 +67,54 @@ ShellRoot {
     IpcHandler {
         target: "levish"
 
-        function toggleLauncher(): void { root.launcherOpen = !root.launcherOpen }
-        function toggleControlCenter(): void {
+        function toggleLauncher() { root.launcherOpen = !root.launcherOpen }
+        function toggleControlCenter() {
             root.powerOpen = false
             root.settingsOpen = false
             root.ccOpen = !root.ccOpen
         }
-        function togglePerformance(): void { root.panelState = !root.panelState }
-        function togglePowerMenu(): void {
+        function togglePerformance() { root.panelState = !root.panelState }
+        function togglePowerMenu() {
             root.ccOpen = false
             root.settingsOpen = false
             root.powerOpen = !root.powerOpen
         }
-        function toggleSettings(): void {
+        function toggleSettings() {
             root.ccOpen = false
             root.powerOpen = false
             root.settingsOpen = !root.settingsOpen
         }
         // Persisted: showing or hiding the dock is a configuration change, like in Settings.
-        function toggleDock(): void { themeStore.set("dock.enabled", !themeStore.dockEnabled) }
+        function toggleDock() { themeStore.set("dock.enabled", !themeStore.dockEnabled) }
         // Used by the Settings wallpaper page and by scripts: sets the wallpaper image path.
-        function setWallpaper(path: string): void { themeStore.set("wallpaper.path", path) }
-        function setWallpaperFit(fit: string): void { themeStore.set("wallpaper.fit", fit) }
-        function toggleWallpaperRotate(): void { themeStore.set("wallpaper.auto_rotate", !themeStore.wallpaperAutoRotate) }
+        function setWallpaper(path) { themeStore.set("wallpaper.path", path) }
+        function setWallpaperFit(fit) { themeStore.set("wallpaper.fit", fit) }
+        function toggleWallpaperRotate() { themeStore.set("wallpaper.auto_rotate", !themeStore.wallpaperAutoRotate) }
         // Read-only status for scripts and debugging: config state and the active wallpaper path.
-        function wallpaperStatus(): string { return themeStore.status + " " + themeStore.wallpaperPath + " (" + themeStore.wallpaperFit + ")" }
+        function wallpaperStatus() { return themeStore.status + " " + themeStore.wallpaperPath + " (" + themeStore.wallpaperFit + ")" }
+        function lock() { lockService.lockNow() }
+        function unlock() { lockService.unlock() }
+        function isLocked() { return lockService.isLocked }
+        // Keyboard brightness keys (XF86MonBrightnessUp / Down): one 5 % step each.
+        function brightnessUp() { root.adjustBrightness(5) }
+        function brightnessDown() { root.adjustBrightness(-5) }
     }
 
     // ── Notifications: one server for the session, one popup window ──
     NotificationService { id: notifications; themeStore: root.themeStoreObj }
+
+    // ── Clipboard history (text, in memory, opt-in in Settings) ──
+    ClipboardService { id: clipboardHistory; themeStore: root.themeStoreObj }
+
+    // Read-only Hyprland queries (keybinds, monitors) for the Keyboard and Displays pages.
+    HyprQuery { id: hyprQuery }
+
+    // Night light (hyprsunset) and caffeine (idle inhibitor).
+    SessionTools { id: sessionTools; themeStore: root.themeStoreObj }
+
+    // Lock screen (hyprlock look) and idle locking (hypridle).
+    LockService { id: lockService; themeStore: root.themeStoreObj; store: root.store }
+
     NotificationPopups { service: notifications; themeStore: root.themeStoreObj }
 
     // ── On-screen display: volume, brightness and keyboard layout ──
@@ -99,6 +124,10 @@ ShellRoot {
     SettingsWindow {
         themeStore: root.themeStoreObj
         notifications: notifications
+        clipboard: clipboardHistory
+        hypr: hyprQuery
+        session: sessionTools
+        lock: lockService
         open: root.settingsOpen
         onCloseRequested: root.settingsOpen = false
     }
@@ -130,33 +159,43 @@ ShellRoot {
         }
     }
 
-    // ── Control socket sender for power menu and shell actions ────────
+    // ── Control socket sender for power menu, shell actions and keys ──
+    // Commands go out one at a time, in order. Nothing is dropped while one is in flight:
+    // brightness steps are relative, so a key press that was queued must still be sent.
     Process {
         id: ctrlProc
         stdout: StdioCollector {}
         stderr: StdioCollector {}
-        property string _pending: ""
-        property var _pendingCmd: []
-        onRunningChanged: {
-            if (!running && _pending !== "") {
-                command = _pendingCmd
-                _pending = ""
-                running = true
-            }
-        }
+        onRunningChanged: if (!running) root.pumpControl()
+    }
+
+    property var controlQueue: []
+
+    function pumpControl() {
+        if (ctrlProc.running || controlQueue.length === 0) return
+        const json = controlQueue[0]
+        controlQueue = controlQueue.slice(1)
+        const script = "import socket,sys; s=socket.socket(socket.AF_UNIX); s.connect('/tmp/levish/control.sock'); s.sendall(sys.argv[1].encode()); s.shutdown(socket.SHUT_WR); print(s.recv(4096).decode())"
+        ctrlProc.command = ["python3", "-c", script, json]
+        ctrlProc.running = true
+    }
+
+    function sendControl(payload) {
+        controlQueue = controlQueue.concat([JSON.stringify(payload)])
+        pumpControl()
     }
 
     function sendAction(act) {
-        const json = JSON.stringify({ cmd: "action", action: act })
-        const script = "import socket,sys; s=socket.socket(socket.AF_UNIX); s.connect('/tmp/levish/control.sock'); s.sendall(sys.argv[1].encode()); s.shutdown(socket.SHUT_WR); print(s.recv(4096).decode())"
-        const cmd = ["python3", "-c", script, json]
-        if (ctrlProc.running) {
-            ctrlProc._pendingCmd = cmd
-            ctrlProc._pending = json
-        } else {
-            ctrlProc.command = cmd
-            ctrlProc.running = true
+        if (act === "lock") {
+            lockService.lockNow()
+            return
         }
+        sendControl({ cmd: "action", action: act })
+    }
+
+    // Keyboard brightness: a relative step handled by the backend (brightnessctl), which clamps 1–100 %.
+    function adjustBrightness(delta) {
+        sendControl({ cmd: "action", action: "adjust_brightness", value: delta })
     }
 
     // Wallpaper: applied through hyprpaper whenever the chosen path changes.
@@ -178,6 +217,7 @@ ShellRoot {
                 id: bar
                 screen: monitor.modelData
                 store: root.store
+                onTrayMenuRequested: (item, x) => trayMenu.openFor(item, x)
                 themeStore: root.themeStoreObj
                 onPerfHovered: (v) => root.overIsland = v
                 onStatusClicked: {
@@ -222,6 +262,9 @@ ShellRoot {
                     root.settingsOpen = true
                 }
             }
+
+            // Styled context menu for tray apps (one per screen, opened by the bar).
+            TrayMenu { id: trayMenu; screen: monitor.modelData }
 
             PowerMenu {
                 screen: monitor.modelData

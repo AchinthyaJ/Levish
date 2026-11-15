@@ -20,6 +20,8 @@ PanelWindow {
     signal statusClicked()
     signal powerClicked()
     signal settingsClicked()
+    // A tray app was clicked and has a menu: shell.qml opens the styled menu under the icon.
+    signal trayMenuRequested(var item, real x)
 
     property bool perfOpen: false
     property bool statusOpen: false
@@ -502,24 +504,58 @@ PanelWindow {
                     }
                 }
 
-                // System Tray (if items present)
-                Row {
+                // Background apps (system tray). Sized and padded like the status group beside it.
+                // Left click opens the app's menu, as other shells do; an app with no menu is activated
+                // instead. Right click opens the menu when there is one, or runs the secondary action.
+                Rectangle {
+                    id: trayZone
                     visible: SystemTray.items.values.length > 0
-                    spacing: 8
-                    anchors.verticalCenter: parent.verticalCenter
+                    implicitWidth: trayRow.childrenRect.width + 14
+                    implicitHeight: bar.height - 8
+                    radius: 8
+                    color: "transparent"
+                    border.width: 1
+                    border.color: "transparent"
 
-                    Repeater {
-                        model: SystemTray.items
-                        Image {
-                            required property var modelData
-                            width: 16; height: 16
-                            source: modelData.icon
-                            sourceSize.width: 16; sourceSize.height: 16
-                            anchors.verticalCenter: parent.verticalCenter
-                            MouseArea {
-                                anchors.fill: parent
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: modelData.activate()
+                    Row {
+                        id: trayRow
+                        x: 7
+                        anchors.verticalCenter: parent.verticalCenter
+                        spacing: 8
+
+                        Repeater {
+                            model: SystemTray.items
+                            Item {
+                                id: trayItem
+                                required property var modelData
+                                width: 20; height: 20
+                                anchors.verticalCenter: parent.verticalCenter
+
+                                Image {
+                                    anchors.centerIn: parent
+                                    width: 16; height: 16
+                                    // Already a usable URL from Quickshell (image://icon/… or image://qspixmap/…), so used as-is.
+                                    source: trayItem.modelData.icon
+                                    sourceSize.width: 32; sourceSize.height: 32
+                                    fillMode: Image.PreserveAspectFit
+                                    asynchronous: true
+                                    smooth: true
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    acceptedButtons: Qt.LeftButton | Qt.RightButton
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: (mouse) => {
+                                        const item = trayItem.modelData
+                                        const p = mapToItem(null, mouse.x, mouse.y)
+                                        // Any click on an app with a menu opens the styled menu under the icon.
+                                        if (item.hasMenu) bar.trayMenuRequested(item, p.x)
+                                        else if (mouse.button === Qt.LeftButton) item.activate()
+                                        else item.secondaryActivate()
+                                    }
+                                }
                             }
                         }
                     }

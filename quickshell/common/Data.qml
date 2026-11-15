@@ -13,6 +13,8 @@ Item {
     property var battery: ({ percent: 0, charging: false })
     property var network: ({ connected: false, ssid: "" })
     property var audio:   ({ volume: 0, muted: false })
+    property var media:   ({ player: "", playing: false, title: "", artist: "", album: "", art_url: "" })
+    property var bluetooth: ({ enabled: false, devices: [] })
     property string activeTitle: ""
     property string activeClass: ""
     property string cpuModel: "CPU"
@@ -49,6 +51,18 @@ Item {
         watchChanges: true
         onFileChanged: reload()
         onLoaded: { try { root.audio = JSON.parse(text()) } catch (e) {} }
+    }
+    FileView {
+        path: "/tmp/levish/media.json"
+        watchChanges: true
+        onFileChanged: reload()
+        onLoaded: { try { root.media = JSON.parse(text()) } catch (e) {} }
+    }
+    FileView {
+        path: "/tmp/levish/bluetooth.json"
+        watchChanges: true
+        onFileChanged: reload()
+        onLoaded: { try { root.bluetooth = JSON.parse(text()) } catch (e) {} }
     }
 
     // Slow-changing values: read once, refresh every 30 s.

@@ -75,6 +75,46 @@ Item {
     property bool osdKeyboard: true
     property int osdTimeout: 2000
 
+    // Clipboard history. Off by default: it records what you copy, so it is opt-in. History is kept
+    // in memory only and is never written to disk.
+    property bool clipboardEnabled: false
+    property int clipboardMax: 50
+
+    // Night light (hyprsunset). Off by default. Caffeine is runtime state and is not stored here.
+    property bool nightlightEnabled: false
+    property int nightlightTemp: 4000
+
+    // Lock screen: auto-lock after N minutes idle (0 = never), and lock before sleep.
+    property int lockTimeoutMin: 0
+    property bool lockBeforeSleep: false
+    property string lockLayout: "cinematic"
+    property string lockClockFormat: "HH:mm"
+    property bool lockShowSeconds: false
+    property real lockClockScale: 1.0
+    property bool lockUseDesktopWallpaper: true
+    property string lockCustomWallpaperPath: ""
+    property int lockBlur: 32
+    property real lockDimming: 0.45
+    property real lockVignette: 0.5
+    property bool lockAmbientEffects: true
+    property bool lockReducedMotion: false
+    property bool lockShowGreeting: true
+    property string lockCustomGreeting: ""
+    property bool lockShowDisplayName: true
+    property bool lockShowUsername: true
+    property bool lockShowHostname: false
+    property string lockCustomAvatar: ""
+    property bool lockShowWeather: true
+    property string lockWeatherLocation: ""
+    property string lockWeatherUnits: "C"
+    property bool lockShowBattery: true
+    property bool lockShowNetwork: true
+    property bool lockShowMedia: true
+    property bool lockShowUptime: false
+    property bool lockHideSensitiveMedia: false
+    property bool lockHideUserDetails: false
+    property bool lockDisableWidgets: false
+
     property string launcherDefaultView: "grid"
     property int launcherColumns: 5
 
@@ -118,7 +158,43 @@ Item {
         "osd.volume":           { prop: "osdVolume",            kind: "bool",  def: true },
         "osd.brightness":       { prop: "osdBrightness",        kind: "bool",  def: true },
         "osd.keyboard":         { prop: "osdKeyboard",          kind: "bool",  def: true },
-        "osd.timeout_ms":       { prop: "osdTimeout",           kind: "int",   def: 2000, min: 800, max: 6000 }
+        "osd.timeout_ms":       { prop: "osdTimeout",           kind: "int",   def: 2000, min: 800, max: 6000 },
+
+        "clipboard.enabled":    { prop: "clipboardEnabled",     kind: "bool",  def: false },
+        "clipboard.max_items":  { prop: "clipboardMax",         kind: "int",   def: 50, min: 5, max: 200 },
+
+        "nightlight.enabled":   { prop: "nightlightEnabled",    kind: "bool",  def: false },
+        "nightlight.temperature": { prop: "nightlightTemp",     kind: "int",   def: 4000, min: 2500, max: 6500 },
+
+        "lock.timeout_min":     { prop: "lockTimeoutMin",       kind: "int",   def: 0, min: 0, max: 120 },
+        "lock.before_sleep":    { prop: "lockBeforeSleep",      kind: "bool",  def: false },
+        "lock.layout":          { prop: "lockLayout",           kind: "enum",  def: "cinematic", choices: ["cinematic", "editorial", "minimal", "split"] },
+        "lock.clock_format":    { prop: "lockClockFormat",      kind: "enum",  def: "HH:mm", choices: ["HH:mm", "hh:mm AP"] },
+        "lock.show_seconds":    { prop: "lockShowSeconds",      kind: "bool",  def: false },
+        "lock.clock_scale":     { prop: "lockClockScale",       kind: "real",  def: 1.0, min: 0.7, max: 1.6 },
+        "lock.use_desktop_wallpaper": { prop: "lockUseDesktopWallpaper", kind: "bool", def: true },
+        "lock.custom_wallpaper_path": { prop: "lockCustomWallpaperPath", kind: "string", def: "", max: 4096 },
+        "lock.blur":            { prop: "lockBlur",             kind: "int",   def: 32, min: 0, max: 64 },
+        "lock.dimming":         { prop: "lockDimming",          kind: "real",  def: 0.45, min: 0.0, max: 0.95 },
+        "lock.vignette":        { prop: "lockVignette",         kind: "real",  def: 0.5, min: 0.0, max: 1.0 },
+        "lock.ambient_effects": { prop: "lockAmbientEffects",   kind: "bool",  def: true },
+        "lock.reduced_motion":  { prop: "lockReducedMotion",    kind: "bool",  def: false },
+        "lock.show_greeting":   { prop: "lockShowGreeting",     kind: "bool",  def: true },
+        "lock.custom_greeting": { prop: "lockCustomGreeting",   kind: "string",def: "", max: 128 },
+        "lock.show_display_name": { prop: "lockShowDisplayName",kind: "bool",  def: true },
+        "lock.show_username":   { prop: "lockShowUsername",     kind: "bool",  def: true },
+        "lock.show_hostname":   { prop: "lockShowHostname",     kind: "bool",  def: false },
+        "lock.custom_avatar":   { prop: "lockCustomAvatar",     kind: "string",def: "", max: 4096 },
+        "lock.show_weather":    { prop: "lockShowWeather",      kind: "bool",  def: false },
+        "lock.weather_location":{ prop: "lockWeatherLocation",  kind: "string",def: "", max: 128 },
+        "lock.weather_units":   { prop: "lockWeatherUnits",     kind: "enum",  def: "C", choices: ["C", "F"] },
+        "lock.show_battery":    { prop: "lockShowBattery",      kind: "bool",  def: true },
+        "lock.show_network":    { prop: "lockShowNetwork",      kind: "bool",  def: true },
+        "lock.show_media":      { prop: "lockShowMedia",        kind: "bool",  def: true },
+        "lock.show_uptime":     { prop: "lockShowUptime",       kind: "bool",  def: false },
+        "lock.hide_sensitive_media": { prop: "lockHideSensitiveMedia", kind: "bool", def: false },
+        "lock.hide_user_details": { prop: "lockHideUserDetails", kind: "bool", def: false },
+        "lock.disable_widgets": { prop: "lockDisableWidgets",   kind: "bool",  def: false }
     })
 
     // Keys the settings app may reset, in display order.

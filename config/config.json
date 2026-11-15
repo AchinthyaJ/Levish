@@ -1,7 +1,7 @@
 {
   "theme": {
     "accent": "#c8f7ef",
-    "opacity": 0.63,
+    "opacity": 0.59,
     "radius": 28,
     "font_family": "JetBrains Mono",
     "preset": "Tokyo Night"
@@ -28,40 +28,17 @@
     "default_view": "grid",
     "columns": 5
   },
-  "shortcuts": [
-    {
-      "key": "SUPER, SPACE",
-      "action": "open_launcher",
-      "desc": "Toggle Application Launcher"
-    },
-    {
-      "key": "SUPER, C",
-      "action": "toggle_cc",
-      "desc": "Toggle Control Center"
-    },
-    {
-      "key": "SUPER, P",
-      "action": "toggle_perf",
-      "desc": "Toggle Performance Panel"
-    },
-    {
-      "key": "SUPER, B",
-      "action": "toggle_dock",
-      "desc": "Show/Hide Dock"
-    },
-    {
-      "key": "SUPER, L",
-      "action": "lock",
-      "desc": "Lock Session"
-    },
-    {
-      "key": "SUPER, ESCAPE",
-      "action": "power_menu",
-      "desc": "Open Power Menu"
-    }
-  ],
   "metrics_interval": 0.5,
   "wallpaper": {
     "path": "/home/achinthyaj/Pictures/Wallpaper/launcherbackground.png"
+  },
+  "nightlight": {
+    "enabled": false
+  },
+  "lock": {
+    "layout": "cinematic",
+    "timeout_min": 60,
+    "before_sleep": true,
+    "show_uptime": true
   }
 }

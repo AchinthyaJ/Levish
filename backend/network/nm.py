@@ -213,9 +213,20 @@ class NetworkManager:
             await self._collect()
         return success
 
+    async def wifi_device(self) -> Optional[str]:
+        """Return the name of the first Wi-Fi device (wlan0, wlp3s0, …), or None if there is none."""
+        out = await _run(["nmcli", "-t", "-f", "DEVICE,TYPE", "device"])
+        for line in out.splitlines():
+            device, _, dev_type = line.partition(":")
+            if dev_type.strip() == "wifi" and device.strip():
+                return device.strip()
+        return None
+
     async def disconnect(self) -> None:
-        """Disconnect active wifi."""
-        await _run(["nmcli", "device", "disconnect", "wlan0"])
+        """Disconnect the Wi-Fi device, whatever it is named on this machine."""
+        device = await self.wifi_device()
+        if device:
+            await _run(["nmcli", "device", "disconnect", device])
         await self._collect()
 
     async def toggle_wifi(self) -> None:

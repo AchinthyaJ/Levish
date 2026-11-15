@@ -38,10 +38,13 @@ PanelWindow {
     // Toggling auto-hide re-runs the reveal check: turning it on hides the dock unless the pointer
     // is already over it, and turning it off keeps the dock shown and cancels any pending hide.
     onAutoHideChanged: {
-        console.log("dock-trace autoHide changed to " + autoHide)  // TEMP
         if (autoHide) {
-            shown = pointerInside
-            revealChanged()
+            if (stripHover.hovered || bodyHover.hovered) {
+                hideDelay.stop()
+                shown = true
+            } else {
+                hideDelay.restart()
+            }
         } else {
             hideDelay.stop()
             shown = true
@@ -62,23 +65,25 @@ PanelWindow {
         id: zone
         anchors.fill: parent
 
-        // Always enabled: disabling a hovered HoverHandler can leave `hovered` stale. revealChanged()
+        // Always enabled: disabling a hovered HoverHandler can leave `hovered` stale. hoverChanged()
         // ignores hover while auto-hide is off.
         HoverHandler {
             id: stripHover
-            onHoveredChanged: win.revealChanged()
+            onHoveredChanged: win.hoverChanged(hovered)
         }
     }
 
     // Hover is tracked on both the strip and the dock body. A HoverHandler is not reliable on a
     // sibling that sits under a hover-enabled MouseArea (the app cells), so the body's own handler
     // is what keeps the dock open while the pointer is over an app.
-    readonly property bool pointerInside: stripHover.hovered || bodyHover.hovered
-
-    function revealChanged() {
-        console.log("dock-trace reveal inside=" + win.pointerInside + " autoHide=" + win.autoHide + " shown=" + win.shown + " strip=" + stripHover.hovered + " body=" + bodyHover.hovered)  // TEMP
+    //
+    // Each handler acts on its own `hovered` value. Do not read a derived binding (such as
+    // "either handler is hovered") inside a hover signal: that binding can still hold the previous
+    // value there, and a leave event then looks like "still inside", so the dock never hides again.
+    // The hide timer reads both handlers directly when it fires, after the event loop has settled.
+    function hoverChanged(inside) {
         if (!win.autoHide) return
-        if (win.pointerInside) {
+        if (inside) {
             hideDelay.stop()
             win.shown = true
         } else {
@@ -90,8 +95,7 @@ PanelWindow {
         id: hideDelay
         interval: 600
         onTriggered: {
-            console.log("dock-trace timer inside=" + win.pointerInside + " autoHide=" + win.autoHide + " shown=" + win.shown)  // TEMP
-            if (!win.pointerInside && win.autoHide) win.shown = false
+            if (win.autoHide && !stripHover.hovered && !bodyHover.hovered) win.shown = false
         }
     }
 
@@ -106,7 +110,7 @@ PanelWindow {
 
         HoverHandler {
             id: bodyHover
-            onHoveredChanged: win.revealChanged()
+            onHoveredChanged: win.hoverChanged(hovered)
         }
 
         // Subtle multi-layer glass shadow

@@ -14,6 +14,10 @@ FloatingWindow {
     id: win
     required property var themeStore
     property var notifications: null     // NotificationService, owned by shell.qml
+    property var clipboard: null         // ClipboardService, owned by shell.qml
+    property var hypr: null              // HyprQuery (read-only Hyprland queries), owned by shell.qml
+    property var session: null           // SessionTools (night light, caffeine), owned by shell.qml
+    property var lock: null              // LockService (lock screen and idle), owned by shell.qml
     property bool open: false
     signal closeRequested()
 
@@ -47,6 +51,11 @@ FloatingWindow {
         { id: "wallpaper",  title: "Wallpaper",              icon: "image" },
         { id: "notifications", title: "Notifications",       icon: "note" },
         { id: "osd",        title: "On-Screen Display",      icon: "sun" },
+        { id: "clipboard",  title: "Clipboard",              icon: "note" },
+        { id: "keyboard",   title: "Keyboard & Shortcuts",   icon: "gear" },
+        { id: "displays",   title: "Displays",               icon: "grid" },
+        { id: "session",    title: "Night Light & Caffeine", icon: "moon" },
+        { id: "lock",       title: "Lock & Idle",            icon: "lock" },
         { id: "about",      title: "About Levish",           icon: "note" }
     ]
 
@@ -320,6 +329,11 @@ FloatingWindow {
                         notifications: win.notifications
                     }
                     OsdSettings { pageId: "osd"; themeStore: win.themeStore }
+                    Clipboard { pageId: "clipboard"; themeStore: win.themeStore; clipboard: win.clipboard }
+                    Keyboard { pageId: "keyboard"; themeStore: win.themeStore; hypr: win.hypr }
+                    Displays { pageId: "displays"; themeStore: win.themeStore; hypr: win.hypr }
+                    Session { pageId: "session"; themeStore: win.themeStore; session: win.session }
+                    Lock { pageId: "lock"; themeStore: win.themeStore; lock: win.lock }
                     About {
                         pageId: "about"; themeStore: win.themeStore
                         onRestoreDefaults: win.themeStore.resetPaths([])

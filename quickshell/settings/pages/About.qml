@@ -1,10 +1,11 @@
 import QtQuick
 import "../../common/Theme.js" as Theme
+import "../../common/Version.js" as Version
 import QtQuick.Layouts
 import QtQuick.Controls
 import "../components"
 
-// About page: only facts this shell can verify. No version or build numbers are invented.
+// About page: the release version and runtime facts this shell can verify.
 Flickable {
     id: page
     property var themeStore
@@ -26,7 +27,7 @@ Flickable {
 
         SettingsCard {
             title: "Levish"
-            Text { text: "Levish shell"; color: page.accent; font.pixelSize: 20; font.weight: Font.Bold }
+            Text { text: "Levish " + Version.version; color: page.accent; font.pixelSize: 20; font.weight: Font.Bold }
             Text {
                 text: "A Quickshell desktop shell for Hyprland. Runtime: Quickshell, Qt 6 and QML, Hyprland IPC, and a Python backend."
                 color: Theme.textSecondary; font.pixelSize: 12; wrapMode: Text.Wrap; width: col.width - 32

@@ -26,12 +26,60 @@ async def _run_cmd(*args: str) -> Tuple[bool, str]:
         return False, str(exc)
 
 
+def _levish_hyprlock_conf():
+    """Path of the hyprlock config Levish writes, or None if it has not been written yet.
+
+    Must match quickshell/lock/LockService.qml, which writes to $XDG_STATE_HOME/levish.
+    """
+    import os
+    from pathlib import Path
+    base = os.environ.get("XDG_STATE_HOME") or str(Path.home() / ".local" / "state")
+    conf = Path(base) / "levish" / "hyprlock.conf"
+    if conf.is_file():
+        return conf
+    tmp_conf = Path("/tmp/levish/hyprlock.conf")
+    return tmp_conf if tmp_conf.is_file() else None
+
+
 class PowerManager:
     """System power operations."""
 
+    # The running hyprlock process, so a second lock request does not start another one.
+    _lock_proc = None
+
     async def lock(self) -> Tuple[bool, str]:
-        """Lock the screen. Tries loginctl, then hyprlock, then swaylock."""
+        """Lock the session.
+
+        Preferred: Levish shell IPC (native ext-session-lock-v1 lock screen).
+        Fallbacks: hyprlock with Levish config, loginctl, hyprlock default, swaylock.
+        """
         logger.info("PowerManager: locking session")
+        # Try Levish IPC first
+        project_root = Path(__file__).resolve().parent.parent.parent
+        ipc_script = project_root / "scripts" / "levish-ipc.sh"
+        if ipc_script.is_file():
+            ok, msg = await _run_cmd(str(ipc_script), "lock")
+            if ok:
+                return True, "Session locked via Levish IPC"
+            logger.debug("Levish IPC lock returned: %s, falling back to hyprlock", msg)
+
+        conf = _levish_hyprlock_conf()
+        if conf is not None:
+            if self._lock_proc is not None and self._lock_proc.returncode is None:
+                return True, "Already locked"
+            try:
+                self._lock_proc = await asyncio.create_subprocess_exec(
+                    "hyprlock", "-c", str(conf),
+                    stdin=asyncio.subprocess.DEVNULL,
+                    stdout=asyncio.subprocess.DEVNULL,
+                    stderr=asyncio.subprocess.DEVNULL,
+                    start_new_session=True,
+                )
+                return True, "Session locked via hyprlock (Levish config)"
+            except FileNotFoundError:
+                logger.debug("hyprlock not installed, using fallbacks")
+            except Exception as exc:
+                logger.debug("hyprlock with Levish config failed: %s", exc)
         ok, msg = await _run_cmd("loginctl", "lock-session")
         if ok:
             return True, "Session locked via loginctl"
