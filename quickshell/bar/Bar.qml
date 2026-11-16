@@ -48,7 +48,8 @@ PanelWindow {
     function switchWorkspace(wid) {
         bar.pendingDeleteWs = -1
         wsProc.running = false
-        wsProc.command = ["hyprctl", "dispatch", "workspace", String(wid)]
+        // Hyprland 0.57 reads dispatchers as Lua: the legacy "workspace N" form is rejected.
+        wsProc.command = ["hyprctl", "dispatch", "hl.dsp.focus({ workspace = " + Number(wid) + " })"]
         wsProc.running = true
     }
 

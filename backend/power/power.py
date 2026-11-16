@@ -120,7 +120,8 @@ class PowerManager:
     async def logout(self) -> Tuple[bool, str]:
         """Log out of the Hyprland session."""
         logger.info("PowerManager: logging out")
-        ok, msg = await _run_cmd("hyprctl", "dispatch", "exit")
+        # Hyprland 0.57 reads dispatchers as Lua; the legacy "exit" form is rejected.
+        ok, msg = await _run_cmd("hyprctl", "dispatch", "hl.dsp.exit()")
         if ok:
             return True, "Logged out"
         return False, f"Logout failed: {msg}"
