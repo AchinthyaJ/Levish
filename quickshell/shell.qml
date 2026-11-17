@@ -253,6 +253,8 @@ ShellRoot {
                 store: root.store
                 anchorLeft: bar.perfLeft
                 anchorWidth: bar.perfWidth
+                floating: bar.islands
+                barHeight: bar.implicitHeight   // islands fill the window, so this is their bottom edge
                 open: root.panelState
                 onHoveredChanged: root.overPanel = hovered
             }
@@ -262,6 +264,8 @@ ShellRoot {
                 store: root.store
                 anchorRight: bar.statusRight
                 anchorWidth: bar.statusWidth
+                floating: bar.islands
+                barHeight: bar.implicitHeight   // islands fill the window, so this is their bottom edge
                 open: root.ccOpen
                 onCloseRequested: root.ccOpen = false
                 onSettingsRequested: {

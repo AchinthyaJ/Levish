@@ -36,7 +36,13 @@ PanelWindow {
     anchors { top: !atBottom; bottom: atBottom; left: true; right: true }
     margins { top: atBottom ? 0 : gapPx; bottom: atBottom ? gapPx : 0
               left: bar.themeStore ? bar.themeStore.barSideMargin : 0; right: bar.themeStore ? bar.themeStore.barSideMargin : 0 }
-    implicitHeight: (bar.themeStore && bar.themeStore.barHeight) ? (bar.themeStore.barHeight + 4) : (Theme.barHeight + 4)
+    // Unified: the bar is 4 px taller than its content. Islands: the window is exactly the island
+    // height, so no empty strip sits under the islands and the panels can start right below them.
+    readonly property int contentHeight: bar.themeStore && bar.themeStore.barHeight ? bar.themeStore.barHeight : Theme.barHeight
+    // Height of each island or zone. Same in both modes: the islands are the window in islands mode, and
+    // sit 4 px inside it in unified mode.
+    readonly property int zoneH: contentHeight - 4
+    implicitHeight: islands ? contentHeight - 4 : contentHeight + 4
     color: "transparent"
     exclusiveZone: bar.implicitHeight + bar.gapPx
     WlrLayershell.namespace: "levish-bar"
@@ -117,12 +123,40 @@ PanelWindow {
     }
     readonly property real powerWidth: powerBtn.width > 0 ? powerBtn.width : 26
 
+    // Input region. Unified: the whole bar. Islands: only the capsules, so the gaps let clicks through.
+    mask: bar.islands ? islandMask : barMask
+    Region {
+        id: barMask
+        item: barBackground
+    }
+    Region {
+        id: islandMask
+        Region { item: capPerf }
+        Region { item: capWork }
+        Region { item: capTitle }
+        Region { item: capClock }
+        Region { item: capStatus }
+        Region { item: capTray }
+        // The settings and power buttons are not in a capsule, so they must be in the input region too.
+        Region { item: settingsBtn }
+        Region { item: powerBtn }
+    }
+
+    // ── Presentation mode ──────────────────────────────────────────
+    // "unified": one continuous glass bar. "islands": each zone is its own floating capsule, and
+    // clicks pass between them. Both modes use the same zones, widgets and popups.
+    readonly property bool islands: bar.themeStore ? bar.themeStore.barMode === "islands" : false
+    readonly property int islandRadius: bar.themeStore ? bar.themeStore.islandRadius : 16
+    readonly property int islandGap: bar.themeStore ? bar.themeStore.islandGap : 20
+    // Breathing room inside each island, on each side of its contents.
+    readonly property int islandPad: bar.themeStore ? bar.themeStore.islandPadding : 10
+
     // ── Continuous unified bar surface ─────────────────────────────
     Rectangle {
         id: barBackground
         anchors.fill: parent
-        color: bar.themeStore ? bar.themeStore.glassColor : Pal.Palette.glass
-        radius: bar.themeStore ? bar.themeStore.barRadius : 0
+        color: bar.islands ? "transparent" : (bar.themeStore ? bar.themeStore.glassColor : Pal.Palette.glass)
+        radius: bar.islands ? 0 : (bar.themeStore ? bar.themeStore.barRadius : 0)
         // Outline is off by default (bar.border = 0), so the bar stays a plain glass surface.
         border.width: bar.themeStore && bar.themeStore.barBorder > 0 ? 1 : 0
         border.color: Qt.rgba(1, 1, 1, bar.themeStore ? bar.themeStore.barBorder : 0)
@@ -136,10 +170,59 @@ PanelWindow {
             onClicked: bar.pendingDeleteWs = -1
         }
 
+        // ── Island capsules (drawn only in islands mode) ───────────────
+        // Each capsule takes the geometry of the zone it backs, so layout changes follow. Zero size
+        // when hidden, so its input region disappears with it.
+        Rectangle {
+            id: capPerf
+            readonly property bool on: bar.islands && perfZone.visible
+            x: rowL.x + perfZone.x - bar.islandPad; y: 4
+            width: on ? perfZone.width + 2 * bar.islandPad : 0; height: on ? bar.zoneH : 0
+            radius: bar.islandRadius; color: bar.themeStore ? bar.themeStore.glassColor : Pal.Palette.glass
+        }
+        Rectangle {
+            id: capWork
+            readonly property bool on: bar.islands && workspaceZone.visible
+            x: rowL.x + workspaceZone.x - bar.islandPad; y: 4
+            width: on ? workspaceZone.width + 2 * bar.islandPad : 0; height: on ? bar.zoneH : 0
+            radius: bar.islandRadius; color: bar.themeStore ? bar.themeStore.glassColor : Pal.Palette.glass
+        }
+        Rectangle {
+            id: capTitle
+            readonly property bool on: bar.islands && titleZone.visible
+            x: rowL.x + titleZone.x - bar.islandPad; y: 4
+            width: on ? titleZone.width + 2 * bar.islandPad : 0; height: on ? bar.zoneH : 0
+            radius: bar.islandRadius; color: bar.themeStore ? bar.themeStore.glassColor : Pal.Palette.glass
+        }
+        Rectangle {
+            id: capClock
+            readonly property bool on: bar.islands && clockZone.visible
+            x: rowL.x + clockZone.x - bar.islandPad; y: 4
+            width: on ? clockZone.width + 2 * bar.islandPad : 0; height: on ? bar.zoneH : 0
+            radius: bar.islandRadius; color: bar.themeStore ? bar.themeStore.glassColor : Pal.Palette.glass
+        }
+        Rectangle {
+            id: capStatus
+            readonly property bool on: bar.islands && statusZone.visible
+            x: rowL.x + rightGroup.x + statusZone.x - bar.islandPad; y: 4
+            width: on ? statusZone.width + 2 * bar.islandPad : 0; height: on ? bar.zoneH : 0
+            radius: bar.islandRadius; color: bar.themeStore ? bar.themeStore.glassColor : Pal.Palette.glass
+        }
+        Rectangle {
+            id: capTray
+            readonly property bool on: bar.islands && trayZone.visible
+            x: rowL.x + rightGroup.x + trayZone.x - bar.islandPad; y: 4
+            width: on ? trayZone.width + 2 * bar.islandPad : 0; height: on ? bar.zoneH : 0
+            radius: bar.islandRadius; color: bar.themeStore ? bar.themeStore.glassColor : Pal.Palette.glass
+        }
+
         // ── Five-Zone Content Layout ────────────────────────────────
         RowLayout {
-            anchors { fill: parent; leftMargin: 14; rightMargin: 14 }
-            spacing: 12
+            id: rowL
+            // Islands: the outer capsules reach the bar's edges, so the group is as wide as the bar.
+            // Unified: the usual inset from the edges.
+            anchors { fill: parent; leftMargin: bar.islands ? bar.islandPad : 14; rightMargin: bar.islands ? bar.islandPad : 14 }
+            spacing: bar.islands ? bar.islandGap : 12
 
             // =========================================================
             // ZONE 1: LEFT — Performance Indicators
@@ -148,7 +231,7 @@ PanelWindow {
                 id: perfZone
                 visible: bar.themeStore ? bar.themeStore.showPerf : true
                 implicitWidth: perfRow.childrenRect.width + 16
-                implicitHeight: bar.height - 8
+                implicitHeight: bar.zoneH
                 radius: 8
                 color: perfMA.containsMouse || bar.perfOpen ? Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.094) : "transparent"
                 border.color: perfMA.containsMouse || bar.perfOpen ? Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.149) : "transparent"
@@ -375,10 +458,17 @@ PanelWindow {
             // ZONE 3: CENTER — Active Window Title
             // =========================================================
             Row {
+                id: titleZone
                 Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                 spacing: 8
-                Layout.maximumWidth: 420
                 visible: bar.themeStore ? bar.themeStore.showWindowTitle : true
+
+                // A small accent dot marks the active window.
+                Rectangle {
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: 6; height: 6; radius: 3
+                    color: Pal.Palette.accent
+                }
 
                 Text {
                     text: {
@@ -389,12 +479,14 @@ PanelWindow {
                         return "Desktop"
                     }
                     color: Pal.Palette.text
-                    font.pixelSize: Theme.fs(12)
-                    font.weight: Font.Medium
+                    font.pixelSize: Theme.fs(15)
+                    font.weight: Font.DemiBold
+                    font.letterSpacing: 0.3
                     elide: Text.ElideMiddle
                     maximumLineCount: 1
-                    width: Math.min(implicitWidth, 380)
-                    horizontalAlignment: Text.AlignHCenter
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: Math.min(implicitWidth, 460)
+                    horizontalAlignment: Text.AlignLeft
                 }
             }
 
@@ -407,7 +499,7 @@ PanelWindow {
                 id: clockZone
                 visible: bar.themeStore ? bar.themeStore.showClock : true
                 implicitWidth: clockRow.childrenRect.width + 12
-                implicitHeight: bar.height - 8
+                implicitHeight: bar.zoneH
                 radius: 6
                 color: "transparent"
                 Layout.alignment: Qt.AlignVCenter
@@ -434,6 +526,7 @@ PanelWindow {
             // ZONE 5: RIGHT — System Indicators, Settings & Power
             // =========================================================
             Row {
+                id: rightGroup
                 Layout.alignment: Qt.AlignVCenter
                 spacing: 8
 
@@ -442,7 +535,7 @@ PanelWindow {
                     id: statusZone
                     visible: bar.themeStore ? bar.themeStore.showStatus : true
                     implicitWidth: statusRow.childrenRect.width + 14
-                    implicitHeight: bar.height - 8
+                    implicitHeight: bar.zoneH
                     radius: 8
                     color: statusMA.containsMouse || bar.statusOpen ? Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.094) : "transparent"
                     border.color: statusMA.containsMouse || bar.statusOpen ? Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.149) : "transparent"
@@ -525,7 +618,7 @@ PanelWindow {
                     id: trayZone
                     visible: (bar.themeStore ? bar.themeStore.showTray : true) && SystemTray.items.values.length > 0
                     implicitWidth: trayRow.childrenRect.width + 14
-                    implicitHeight: bar.height - 8
+                    implicitHeight: bar.zoneH
                     radius: 8
                     color: "transparent"
                     border.width: 1

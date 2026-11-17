@@ -16,16 +16,20 @@ PanelWindow {
     // Geometry of the island this panel drops from (screen pixels).
     property real anchorLeft: 0
     property real anchorWidth: 200
+    // Floating Islands: a separate rounded panel below the bar, not joined to it.
+    property bool floating: false
+    property real barHeight: 0
 
-    readonly property real flt: Theme.fillet
-    readonly property real bodyW: 700
+    readonly property real flt: floating ? 0 : Theme.fillet
+    readonly property real bodyW: 760
 
     anchors { top: true; left: true }
     // Margins are measured from the bar's bottom edge (its exclusive zone), so one
     // fillet above that edge puts the curved shoulders beside the island.
     // Start the window one fillet above the bar's bottom edge, so the curved
     // shoulders sit beside the island's bottom and the wall meets it directly.
-    margins { top: 0; left: anchorLeft - flt }
+    // The top margin is measured from the bar's exclusive zone, so the bar's height is already included.
+    margins { top: floating ? 10 : 0; left: anchorLeft - flt }
     implicitWidth: bodyW + 2 * flt
     implicitHeight: col.implicitHeight + 40 + flt
     color: "transparent"
@@ -50,7 +54,17 @@ PanelWindow {
             Behavior on yScale { NumberAnimation { duration: Theme.dur(320); easing.type: Easing.OutCubic } }
         }
 
+        // Floating: a rounded glass card. Unified: the shape that flows out of the bar.
+        Rectangle {
+            visible: panel.floating
+            anchors.fill: parent
+            radius: 22
+            color: Pal.Palette.glass
+            border.color: Pal.Palette.glassEdge
+            border.width: 1
+        }
         C.DropShape {
+            visible: !panel.floating
             anchors.fill: parent
             fillet: panel.flt
             radius: Theme.dropRadius

@@ -20,8 +20,9 @@
     "side_margin": 0,
     "radius": 11,
     "position": "top",
-    "border": 0.15,
-    "gap": 0
+    "border": 0,
+    "gap": 0,
+    "mode": "islands"
   },
   "dock": {
     "enabled": true,
@@ -61,7 +62,7 @@
   },
   "config_version": 1,
   "settings": {
-    "last_page": "displays"
+    "last_page": "dock"
   },
   "palette": {
     "window": "#1c1511",

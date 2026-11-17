@@ -13,7 +13,8 @@ Flickable {
     readonly property var resetPaths: ["bar.height", "bar.clock_format", "bar.show_date", "bar.show_seconds",
         "bar.show_gpu", "bar.show_temp", "bar.ws_width", "bar.ws_height", "bar.ws_radius",
         "bar.show_perf", "bar.show_workspaces", "bar.show_window_title", "bar.show_clock", "bar.show_status", "bar.show_tray",
-        "bar.position", "bar.gap", "bar.side_margin", "bar.radius", "bar.border", "palette.bar"]
+        "bar.position", "bar.gap", "bar.side_margin", "bar.radius", "bar.border", "palette.bar",
+        "bar.mode", "bar.island_radius", "bar.island_gap"]
     readonly property color accent: themeStore.accentColor
 
     contentHeight: col.implicitHeight + 40
@@ -54,6 +55,32 @@ Flickable {
                 label: "Show date"
                 SettingsToggle { accent: page.accent; checked: page.themeStore.showDate
                     onToggled: (v) => page.themeStore.set("bar.show_date", v) }
+            }
+        }
+
+        SettingsCard {
+            title: "Layout"
+            SettingsRow {
+                label: "Presentation"
+                hint: "Unified is one continuous bar. Floating Islands separates the sections into capsules that clicks pass between."
+                SettingsChoice { accent: page.accent
+                    options: [{ value: "unified", label: "Unified" }, { value: "islands", label: "Floating Islands" }]
+                    current: page.themeStore.barMode
+                    onPicked: (v) => page.themeStore.set("bar.mode", v) }
+            }
+            SettingsRow {
+                label: "Island corner radius"
+                visible: page.themeStore.barMode === "islands"
+                SettingsSlider { from: 4; to: 30; step: 1; suffix: " px"; accent: page.accent
+                    value: page.themeStore.islandRadius
+                    onCommitted: (v) => page.themeStore.set("bar.island_radius", v) }
+            }
+            SettingsRow {
+                label: "Space between islands"
+                visible: page.themeStore.barMode === "islands"
+                SettingsSlider { from: 0; to: 40; step: 1; suffix: " px"; accent: page.accent
+                    value: page.themeStore.islandGap
+                    onCommitted: (v) => page.themeStore.set("bar.island_gap", v) }
             }
         }
 

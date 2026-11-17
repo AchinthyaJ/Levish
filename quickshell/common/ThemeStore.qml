@@ -90,6 +90,11 @@ Item {
     property int barGap: 0
     property int barSideMargin: 0
     property int barRadius: 0
+    // Presentation: one continuous bar ("unified") or separate floating islands ("islands").
+    property string barMode: "unified"
+    property int islandRadius: 16
+    property int islandGap: 20
+    property int islandPadding: 10
     property real dockZoom: 1.12
     property int dockMargin: 10
     property string dockMonitor: ""      // "" = first screen, "all" = every screen, or a screen name

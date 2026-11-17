@@ -117,6 +117,10 @@ var schema = {
     "palette.danger": { prop: "paletteDanger", kind: "color", def: "#f0708a" },
     "palette.card":        { prop: "paletteCard",        kind: "color", def: "#213842" },
     "palette.card_edge":   { prop: "paletteCardEdge",    kind: "color", def: "#2a4452" },
+    "bar.mode":             { prop: "barMode",              kind: "enum",  def: "unified", choices: ["unified", "islands"] },
+    "bar.island_radius":    { prop: "islandRadius",          kind: "int",   def: 16, min: 4, max: 30 },
+    "bar.island_gap":       { prop: "islandGap",             kind: "int",   def: 20, min: 0, max: 60 },
+    "bar.island_padding":   { prop: "islandPadding",         kind: "int",   def: 10, min: 0, max: 30 },
     "ui.reduced_motion":    { prop: "reducedMotion",        kind: "bool",  def: false },
     "settings.last_page":   { prop: "settingsLastPage",     kind: "enum",  def: "overview", choices: ["overview", "appearance", "topbar", "dock", "launcher", "wallpaper", "notifications", "osd", "clipboard", "keyboard", "displays", "session", "lock", "about"] }
     }

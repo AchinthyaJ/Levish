@@ -59,12 +59,13 @@ Flickable {
             page.connState = "ok"
         }
     }
-    onWifiDeviceChanged: refreshConnection()
+    // Deferred: changing state while a binding is being evaluated creates a binding loop.
+    onWifiDeviceChanged: Qt.callLater(page.refreshConnection)
     Connections {
         target: page.wifiDevice
-        function onConnectedChanged() { page.refreshConnection() }
+        function onConnectedChanged() { Qt.callLater(page.refreshConnection) }
     }
-    Component.onCompleted: refreshConnection()
+    Component.onCompleted: Qt.callLater(page.refreshConnection)
 
     function bars(n) { return Math.max(0, Math.min(4, Math.round(n * 4))) }
 

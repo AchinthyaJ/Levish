@@ -22,8 +22,11 @@ PanelWindow {
     signal closeRequested()
     signal settingsRequested()
 
-    readonly property real flt: Theme.fillet
-    readonly property real bodyW: 380
+    // Floating Islands: a separate rounded panel below the bar, not joined to it.
+    property bool floating: false
+    property real barHeight: 0
+    readonly property real flt: floating ? 0 : Theme.fillet
+    readonly property real bodyW: 420
     readonly property color cardFill: Pal.Palette.surface
     readonly property color cardEdge: Pal.Palette.surfaceEdge
 
@@ -35,7 +38,7 @@ PanelWindow {
     // puts the fillet shoulders beside the island.
     anchors { top: true; right: true }
     margins {
-        top:   0
+        top:   floating ? 10 : 0
         right: Math.max(12, Math.min(300, anchorRight > 0 ? (anchorRight - flt) : 12))
     }
     implicitWidth:  bodyW + 2 * flt
@@ -152,7 +155,17 @@ PanelWindow {
             Behavior on yScale { NumberAnimation { duration: Theme.dur(320); easing.type: Easing.OutCubic } }
         }
 
+        // Floating: a rounded glass card. Unified: the shape that flows out of the bar.
+        Rectangle {
+            visible: ccPanel.floating
+            anchors.fill: parent
+            radius: 22
+            color: Pal.Palette.glass
+            border.color: Pal.Palette.glassEdge
+            border.width: 1
+        }
         C.DropShape {
+            visible: !ccPanel.floating
             anchors.fill: parent
             fillet: ccPanel.flt
             radius: Theme.dropRadius
