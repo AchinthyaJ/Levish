@@ -5,6 +5,7 @@ import "../identity"
 import "../auth"
 import "../widgets"
 import "../../common/Theme.js" as Theme
+import "../../common" as Pal
 
 Item {
     id: root
@@ -70,7 +71,7 @@ Item {
         Rectangle {
             Layout.preferredWidth: 1
             Layout.preferredHeight: Math.round(320 * root.screenScale)
-            color: "#20ffffff"
+            color: Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.125)
         }
 
         // Right Column: Identity, Authentication & Media

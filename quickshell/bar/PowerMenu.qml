@@ -117,8 +117,8 @@ PanelWindow {
                     implicitHeight: 34
                     radius: 10
                     readonly property bool isSelected: powerWin.selectedIndex === index || rowMA.containsMouse
-                    color: isSelected ? (modelData.hot ? "#33e94560" : "#22ffffff") : "transparent"
-                    border.color: isSelected ? (modelData.hot ? "#66e94560" : "#33ffffff") : "transparent"
+                    color: isSelected ? (modelData.hot ? "#33e94560" : Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.133)) : "transparent"
+                    border.color: isSelected ? (modelData.hot ? "#66e94560" : Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.2)) : "transparent"
                     border.width: 1
                     Behavior on color { ColorAnimation { duration: Theme.dur(120) } }
 
@@ -132,8 +132,8 @@ PanelWindow {
                         Rectangle {
                             implicitWidth: 18; implicitHeight: 18
                             radius: 4
-                            color: "#18ffffff"
-                            border.color: "#22ffffff"
+                            color: Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.094)
+                            border.color: Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.133)
                             border.width: 1
                             Text {
                                 anchors.centerIn: parent

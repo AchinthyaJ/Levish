@@ -16,7 +16,7 @@ Flickable {
     property string wallMsg: ""
     property string keywords: "appearance accent colour color theme opacity glass dock transparency hex corner radius rounded"
     readonly property var resetPaths: ["theme.accent", "theme.opacity", "dock.opacity", "theme.radius", "theme.border", "theme.font_scale", "theme.font_family", "ui.reduced_motion",
-        "palette.window", "palette.sidebar", "palette.bar", "palette.dock", "palette.text", "palette.text_secondary", "palette.muted", "palette.ink", "palette.icon_tile", "palette.ok", "palette.warning", "palette.danger"]
+        "palette.window", "palette.sidebar", "palette.bar", "palette.dock", "palette.text", "palette.text_secondary", "palette.muted", "palette.ink", "palette.icon_tile", "palette.ok", "palette.warning", "palette.danger", "palette.card", "palette.card_edge"]
     readonly property color accent: themeStore.accentColor
     readonly property var swatches: [
         { name: "Aqua", hex: Pal.Palette.accent }, { name: "Turquoise", hex: "#2dd4bf" },
@@ -39,11 +39,38 @@ Flickable {
             title: "Colour palette"
             SettingsRow {
                 label: "Preset"
-                hint: "A complete palette in one step. Light and dark presets are included. You can still change each colour below."
-                SettingsChoice { accent: page.accent
-                    options: page.themeStore.presetNames.map(n => ({ value: n, label: n }))
-                    current: ""
-                    onPicked: (v) => page.themeStore.applyPreset(v) }
+                hint: "A complete palette in one step. Light, dark and solid presets are included. You can still change each colour below."
+            }
+            // Wraps onto as many lines as it needs, so every preset stays inside the card.
+            Flow {
+                Layout.fillWidth: true
+                spacing: 6
+                Repeater {
+                    model: page.themeStore.presetNames
+                    delegate: Rectangle {
+                        required property string modelData
+                        height: 28
+                        width: Math.max(72, presetLabel.implicitWidth + 24)
+                        radius: 8
+                        color: presetMa.containsMouse ? Pal.Palette.surfaceEdge : Pal.Palette.controlFill
+                        border.color: Pal.Palette.controlEdge
+                        border.width: 1
+                        Text {
+                            id: presetLabel
+                            anchors.centerIn: parent
+                            text: modelData
+                            color: Pal.Palette.text
+                            font.pixelSize: Theme.fs(12)
+                        }
+                        MouseArea {
+                            id: presetMa
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: page.themeStore.applyPreset(modelData)
+                        }
+                    }
+                }
             }
             SettingsRow {
                 label: "Window background"
@@ -92,6 +119,14 @@ Flickable {
             SettingsRow {
                 label: "Danger"
                 ColorField { themeStore: page.themeStore; path: "palette.danger"; accent: page.accent; width: 180 }
+            }
+            SettingsRow {
+                label: "Card background"
+                ColorField { themeStore: page.themeStore; path: "palette.card"; accent: page.accent; width: 180 }
+            }
+            SettingsRow {
+                label: "Card border"
+                ColorField { themeStore: page.themeStore; path: "palette.card_edge"; accent: page.accent; width: 180 }
             }
         }
 

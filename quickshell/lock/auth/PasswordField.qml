@@ -43,7 +43,7 @@ Rectangle {
     readonly property color accent: root.themeStore ? root.themeStore.accentColor : Pal.Palette.accent
 
     color: isError ? "#281a20" : "#121b24cc"
-    border.color: isError ? "#f0708a" : (root.pam && root.pam.buffer.length > 0 ? root.accent : "#30ffffff")
+    border.color: isError ? "#f0708a" : (root.pam && root.pam.buffer.length > 0 ? root.accent : Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.188))
     border.width: (isError || (root.pam && root.pam.buffer.length > 0)) ? 1.5 : 1
 
     Behavior on border.color { ColorAnimation { duration: Theme.dur(180) } }
@@ -130,7 +130,7 @@ Rectangle {
             Layout.preferredWidth: Math.round(28 * root.screenScale)
             Layout.preferredHeight: Math.round(28 * root.screenScale)
             radius: width / 2
-            color: eyeMA.containsMouse ? "#20ffffff" : "transparent"
+            color: eyeMA.containsMouse ? Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.125) : "transparent"
             visible: root.pam && root.pam.buffer.length > 0
 
             C.Icon {
@@ -157,7 +157,7 @@ Rectangle {
             radius: width / 2
             color: (root.pam && root.pam.buffer.length > 0)
                    ? (submitMA.containsMouse ? Qt.lighter(root.accent, 1.1) : root.accent)
-                   : (submitMA.containsMouse ? "#28ffffff" : "#18ffffff")
+                   : (submitMA.containsMouse ? Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.157) : Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.094))
 
             Behavior on color { ColorAnimation { duration: Theme.dur(150) } }
 

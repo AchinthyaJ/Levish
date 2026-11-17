@@ -24,7 +24,7 @@ Rectangle {
     radius: Math.round(18 * screenScale)
 
     color: "#141f2caa"
-    border.color: "#28ffffff"
+    border.color: Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.157)
     border.width: 1
 
     Process {
@@ -107,7 +107,7 @@ Rectangle {
                 Layout.preferredWidth: Math.round(26 * root.screenScale)
                 Layout.preferredHeight: Math.round(26 * root.screenScale)
                 radius: width / 2
-                color: prevMA.containsMouse ? "#25ffffff" : "transparent"
+                color: prevMA.containsMouse ? Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.145) : "transparent"
 
                 C.Icon {
                     anchors.centerIn: parent
@@ -155,7 +155,7 @@ Rectangle {
                 Layout.preferredWidth: Math.round(26 * root.screenScale)
                 Layout.preferredHeight: Math.round(26 * root.screenScale)
                 radius: width / 2
-                color: nextMA.containsMouse ? "#25ffffff" : "transparent"
+                color: nextMA.containsMouse ? Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.145) : "transparent"
 
                 C.Icon {
                     anchors.centerIn: parent

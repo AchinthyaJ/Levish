@@ -34,7 +34,7 @@ Rectangle {
     radius: height / 2
 
     color: "#121b25aa"
-    border.color: "#25ffffff"
+    border.color: Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.145)
     border.width: 1
 
     RowLayout {

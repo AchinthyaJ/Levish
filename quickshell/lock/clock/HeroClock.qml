@@ -106,8 +106,8 @@ ColumnLayout {
                 implicitWidth: Math.round(42 * root.finalScale)
                 implicitHeight: Math.round(26 * root.finalScale)
                 radius: Math.round(7 * root.finalScale)
-                color: "#12ffffff"
-                border.color: "#25ffffff"
+                color: Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.071)
+                border.color: Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.145)
                 border.width: 1
 
                 Text {

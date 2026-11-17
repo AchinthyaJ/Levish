@@ -24,9 +24,9 @@ Rectangle {
     Layout.fillWidth: true
     implicitHeight: 66
     radius: 22
-    color: checked ? Qt.rgba(Pal.Palette.accent.r, Pal.Palette.accent.g, Pal.Palette.accent.b, 0.141) : "#12ffffff"
+    color: checked ? Qt.rgba(Pal.Palette.accent.r, Pal.Palette.accent.g, Pal.Palette.accent.b, 0.141) : Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.071)
     border.width: 1
-    border.color: checked ? Qt.rgba(Pal.Palette.accent.r, Pal.Palette.accent.g, Pal.Palette.accent.b, 0.251) : "#14ffffff"
+    border.color: checked ? Qt.rgba(Pal.Palette.accent.r, Pal.Palette.accent.g, Pal.Palette.accent.b, 0.251) : Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.078)
     Behavior on color { ColorAnimation { duration: Theme.dur(180) } }
     Behavior on border.color { ColorAnimation { duration: Theme.dur(180) } }
 
@@ -41,7 +41,7 @@ Rectangle {
         Rectangle {
             anchors.fill: parent
             radius: tile.radius
-            color: toggleMA.containsMouse ? "#14ffffff" : "transparent"
+            color: toggleMA.containsMouse ? Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.078) : "transparent"
             Behavior on color { ColorAnimation { duration: Theme.dur(140) } }
         }
 
@@ -53,7 +53,7 @@ Rectangle {
                 id: badge
                 Layout.preferredWidth: 32; Layout.preferredHeight: 32
                 radius: 16
-                color: tile.checked ? Pal.Palette.accent : "#18ffffff"
+                color: tile.checked ? Pal.Palette.accent : Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.094)
                 Behavior on color { ColorAnimation { duration: Theme.dur(180) } }
                 C.Icon {
                     anchors.centerIn: parent
@@ -94,7 +94,7 @@ Rectangle {
         visible: tile.expandable
         anchors { right: parent.right; rightMargin: tile.chevronWidth; verticalCenter: parent.verticalCenter }
         width: 1; height: 30
-        color: "#1affffff"
+        color: Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.102)
     }
 
     // ── Chevron area: its own wide, clearly separate hit target ─────────
@@ -107,7 +107,7 @@ Rectangle {
         Rectangle {
             anchors.centerIn: parent
             width: 28; height: 28; radius: 14
-            color: chevMA.containsMouse ? "#22ffffff" : "transparent"
+            color: chevMA.containsMouse ? Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.133) : "transparent"
             Behavior on color { ColorAnimation { duration: Theme.dur(140) } }
             C.Icon {
                 anchors.centerIn: parent

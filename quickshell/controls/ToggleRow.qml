@@ -50,9 +50,9 @@ RowLayout {
         id: pill
         implicitWidth: 42; implicitHeight: 24
         radius: 12
-        color: row.checked ? Pal.Palette.accent : "#33ffffff"
+        color: row.checked ? Pal.Palette.accent : Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.2)
         Behavior on color { ColorAnimation { duration: Theme.dur(200) } }
-        border.color: row.checked ? "transparent" : "#22ffffff"
+        border.color: row.checked ? "transparent" : Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.133)
         border.width: 1
 
         Rectangle {

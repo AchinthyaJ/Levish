@@ -25,6 +25,7 @@ const DEFAULTS = {
   "palette.dock": null, "palette.text": "text", "palette.text_secondary": "textSecondary",
   "palette.muted": "muted", "palette.icon_tile": "iconTile", "palette.ok": "ok",
   "palette.warning": "warning", "palette.danger": "danger",
+  "palette.card": "solidCard", "palette.card_edge": "solidCardEdge",
 }
 const paletteKeys = Object.keys(schema).filter((k) => k.startsWith("palette."))
 
@@ -66,7 +67,7 @@ test("the Light preset has dark text on a light background", () => {
 })
 
 test("the dark presets keep light text on a dark background", () => {
-  for (const name of ["Levish Aqua", "Midnight", "Warm"]) {
+  for (const name of Object.keys(presets).filter((n) => n !== "Light")) {
     const p = presets[name]
     assert.ok(luminance(p["palette.window"]) < 0.1, name + " window should be dark")
     assert.ok(luminance(p["palette.text"]) > 0.6, name + " text should be light")

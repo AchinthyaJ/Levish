@@ -32,7 +32,7 @@ Item {
         x: btn.vertical ? 4 + (btn.iconSize - width) / 2 : (btn.width - width) / 2
         y: btn.vertical ? (btn.height - height) / 2 : 4 + (btn.iconSize - height) / 2
         radius: width * 0.3
-        color: hover.containsMouse ? "#26ffffff" : "#16ffffff"
+        color: hover.containsMouse ? Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.149) : Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.086)
         border.color: Pal.Palette.dockEdge
         border.width: 1
         transformOrigin: Item.Center

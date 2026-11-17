@@ -24,8 +24,8 @@ PanelWindow {
 
     readonly property real flt: Theme.fillet
     readonly property real bodyW: 380
-    readonly property string cardFill: "#12ffffff"
-    readonly property string cardEdge: "#14ffffff"
+    readonly property color cardFill: Pal.Palette.surface
+    readonly property color cardEdge: Pal.Palette.surfaceEdge
 
     // "", "wifi" or "bluetooth": which device list is expanded.
     property string panelMode: ""
@@ -191,7 +191,7 @@ PanelWindow {
                 // The Settings button lives in the top bar only, so Settings has one entry point.
                 Rectangle {
                     implicitWidth: 24; implicitHeight: 24; radius: 12
-                    color: closeMA.containsMouse ? "#22ffffff" : "transparent"
+                    color: closeMA.containsMouse ? Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.133) : "transparent"
                     Behavior on color { ColorAnimation { duration: Theme.dur(140) } }
                     C.Icon { anchors.centerIn: parent; width: 11; height: 11; kind: "close"; tint: Pal.Palette.muted }
                     MouseArea {
@@ -259,7 +259,7 @@ PanelWindow {
                             delegate: Rectangle {
                                 required property var modelData
                                 implicitWidth: 30; implicitHeight: 30; radius: 15
-                                color: btnMA.containsMouse ? "#18ffffff" : "transparent"
+                                color: btnMA.containsMouse ? Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.094) : "transparent"
                                 Behavior on color { ColorAnimation { duration: Theme.dur(120) } }
                                 C.Icon {
                                     anchors.centerIn: parent
@@ -386,7 +386,7 @@ PanelWindow {
                                         Rectangle {
                                             visible: !modelData.in_use
                                             implicitWidth: connTxt.implicitWidth + 16; implicitHeight: 22; radius: 11
-                                            color: connMA.containsMouse ? Qt.rgba(Pal.Palette.accent.r, Pal.Palette.accent.g, Pal.Palette.accent.b, 0.141) : "#14ffffff"
+                                            color: connMA.containsMouse ? Qt.rgba(Pal.Palette.accent.r, Pal.Palette.accent.g, Pal.Palette.accent.b, 0.141) : Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.078)
                                             Text { id: connTxt; anchors.centerIn: parent; text: "Connect"; color: Pal.Palette.text; font.pixelSize: Theme.fs(10) }
                                             MouseArea {
                                                 id: connMA; anchors.fill: parent; hoverEnabled: true
@@ -406,7 +406,7 @@ PanelWindow {
                                         Rectangle {
                                             Layout.fillWidth: true
                                             implicitHeight: 28; radius: 10
-                                            color: "#14ffffff"; border.color: ccPanel.cardEdge
+                                            color: Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.078); border.color: ccPanel.cardEdge
                                             TextInput {
                                                 id: pwField
                                                 anchors { fill: parent; leftMargin: 10; rightMargin: 10 }
@@ -487,7 +487,7 @@ PanelWindow {
                                     }
                                     Rectangle {
                                         implicitWidth: btTxt.implicitWidth + 16; implicitHeight: 22; radius: 11
-                                        color: btMA.containsMouse ? Qt.rgba(Pal.Palette.accent.r, Pal.Palette.accent.g, Pal.Palette.accent.b, 0.141) : "#14ffffff"
+                                        color: btMA.containsMouse ? Qt.rgba(Pal.Palette.accent.r, Pal.Palette.accent.g, Pal.Palette.accent.b, 0.141) : Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.078)
                                         Text {
                                             id: btTxt; anchors.centerIn: parent
                                             text: modelData.connected ? "Disconnect" : (modelData.paired ? "Connect" : "Pair")
@@ -522,9 +522,9 @@ PanelWindow {
                         readonly property bool active: ccPanel._profiles.active === modelData
                         Layout.fillWidth: true
                         implicitHeight: 34; radius: 17
-                        color: active ? Qt.rgba(Pal.Palette.accent.r, Pal.Palette.accent.g, Pal.Palette.accent.b, 0.141) : (pMA.containsMouse ? "#1affffff" : "#12ffffff")
+                        color: active ? Qt.rgba(Pal.Palette.accent.r, Pal.Palette.accent.g, Pal.Palette.accent.b, 0.141) : (pMA.containsMouse ? Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.102) : Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.071))
                         border.width: 1
-                        border.color: active ? Qt.rgba(Pal.Palette.accent.r, Pal.Palette.accent.g, Pal.Palette.accent.b, 0.251) : "#14ffffff"
+                        border.color: active ? Qt.rgba(Pal.Palette.accent.r, Pal.Palette.accent.g, Pal.Palette.accent.b, 0.251) : Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.078)
                         Behavior on color { ColorAnimation { duration: Theme.dur(160) } }
                         Text {
                             anchors.centerIn: parent
@@ -595,9 +595,9 @@ PanelWindow {
                             Layout.fillWidth: true
                             implicitHeight: 50; radius: 18
                             color: actMA.containsMouse
-                                   ? (modelData.hot ? "#33e94560" : "#22ffffff")
-                                   : "#12ffffff"
-                            border.color: "#14ffffff"; border.width: 1
+                                   ? (modelData.hot ? "#33e94560" : Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.133))
+                                   : Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.071)
+                            border.color: Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.078); border.width: 1
                             Behavior on color { ColorAnimation { duration: Theme.dur(150) } }
                             C.Icon {
                                 anchors.centerIn: parent

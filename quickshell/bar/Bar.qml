@@ -150,8 +150,8 @@ PanelWindow {
                 implicitWidth: perfRow.childrenRect.width + 16
                 implicitHeight: bar.height - 8
                 radius: 8
-                color: perfMA.containsMouse || bar.perfOpen ? "#18ffffff" : "transparent"
-                border.color: perfMA.containsMouse || bar.perfOpen ? "#26ffffff" : "transparent"
+                color: perfMA.containsMouse || bar.perfOpen ? Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.094) : "transparent"
+                border.color: perfMA.containsMouse || bar.perfOpen ? Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.149) : "transparent"
                 border.width: 1
                 Behavior on color { ColorAnimation { duration: Theme.dur(150) } }
                 Behavior on border.color { ColorAnimation { duration: Theme.dur(150) } }
@@ -257,7 +257,7 @@ PanelWindow {
             // Divider between Left and Left-Center
             Rectangle {
                 implicitWidth: 1; implicitHeight: 16
-                color: "#18ffffff"
+                color: Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.094)
             }
 
             // =========================================================
@@ -288,8 +288,8 @@ PanelWindow {
                             anchors.fill: parent
                             visible: !isPendingDelete
                             radius: pillRadius
-                            color: modelData.focused ? (bar.themeStore ? bar.themeStore.accentColor : Pal.Palette.accent) : (modelData.active ? "#ddffffff" : "#44ffffff")
-                            border.color: modelData.focused ? (bar.themeStore ? bar.themeStore.accentColor : Pal.Palette.accent) : "#22ffffff"
+                            color: modelData.focused ? (bar.themeStore ? bar.themeStore.accentColor : Pal.Palette.accent) : (modelData.active ? Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.867) : Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.267))
+                            border.color: modelData.focused ? (bar.themeStore ? bar.themeStore.accentColor : Pal.Palette.accent) : Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.133)
                             border.width: 1
                             Behavior on color { ColorAnimation { duration: Theme.dur(180) } }
                         }
@@ -346,8 +346,8 @@ PanelWindow {
                     height: 20
                     radius: 10
                     anchors.verticalCenter: parent.verticalCenter
-                    color: addMA.containsMouse ? "#26ffffff" : "#12ffffff"
-                    border.color: addMA.containsMouse ? (bar.themeStore ? bar.themeStore.accentColor : Pal.Palette.accent) : "#22ffffff"
+                    color: addMA.containsMouse ? Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.149) : Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.071)
+                    border.color: addMA.containsMouse ? (bar.themeStore ? bar.themeStore.accentColor : Pal.Palette.accent) : Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.133)
                     border.width: 1
                     Behavior on color { ColorAnimation { duration: Theme.dur(150) } }
                     Behavior on border.color { ColorAnimation { duration: Theme.dur(150) } }
@@ -427,7 +427,7 @@ PanelWindow {
             // Divider between Clock and Right System zone
             Rectangle {
                 implicitWidth: 1; implicitHeight: 16
-                color: "#18ffffff"
+                color: Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.094)
             }
 
             // =========================================================
@@ -444,8 +444,8 @@ PanelWindow {
                     implicitWidth: statusRow.childrenRect.width + 14
                     implicitHeight: bar.height - 8
                     radius: 8
-                    color: statusMA.containsMouse || bar.statusOpen ? "#18ffffff" : "transparent"
-                    border.color: statusMA.containsMouse || bar.statusOpen ? "#26ffffff" : "transparent"
+                    color: statusMA.containsMouse || bar.statusOpen ? Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.094) : "transparent"
+                    border.color: statusMA.containsMouse || bar.statusOpen ? Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.149) : "transparent"
                     border.width: 1
                     Behavior on color { ColorAnimation { duration: Theme.dur(150) } }
                     Behavior on border.color { ColorAnimation { duration: Theme.dur(150) } }
@@ -478,7 +478,7 @@ PanelWindow {
 
                             Rectangle {
                                 width: 36; height: 4; radius: 2
-                                color: "#22ffffff"
+                                color: Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.133)
                                 anchors.verticalCenter: parent.verticalCenter
 
                                 Rectangle {
@@ -585,10 +585,10 @@ PanelWindow {
                     anchors.verticalCenter: parent.verticalCenter
                     color: setMA.containsMouse || bar.settingsOpen
                            ? (bar.themeStore ? Qt.rgba(0.2, 0.4, 0.5, 0.45) : Qt.rgba(Pal.Palette.accent.r, Pal.Palette.accent.g, Pal.Palette.accent.b, 0.2))
-                           : "#18ffffff"
+                           : Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.094)
                     border.color: setMA.containsMouse || bar.settingsOpen
                                   ? (bar.themeStore ? bar.themeStore.accentColor : Pal.Palette.accent)
-                                  : "#33ffffff"
+                                  : Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.2)
                     border.width: 1.5
                     scale: setMA.containsMouse ? 1.08 : 1.0
                     Behavior on scale { NumberAnimation { duration: Theme.dur(150); easing.type: Easing.OutBack } }
@@ -618,7 +618,7 @@ PanelWindow {
                     id: powerBtn
                     implicitWidth: 28; implicitHeight: 28
                     radius: 14
-                    color: pwrMA.containsMouse || bar.powerOpen ? "#33e94560" : "#14ffffff"
+                    color: pwrMA.containsMouse || bar.powerOpen ? "#33e94560" : Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.078)
                     border.color: pwrMA.containsMouse || bar.powerOpen ? "#66e94560" : "transparent"
                     border.width: 1
                     anchors.verticalCenter: parent.verticalCenter

@@ -75,7 +75,7 @@ Item {
         x: icon.x; y: icon.y
         width: icon.width; height: icon.height
         radius: 12
-        color: "#18ffffff"
+        color: Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.094)
         border.color: Pal.Palette.dockEdge
         border.width: 1
         Text {

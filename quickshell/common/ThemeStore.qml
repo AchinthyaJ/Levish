@@ -45,6 +45,8 @@ Item {
     property string paletteOk: "#34d399"
     property string paletteWarning: "#fb923c"
     property string paletteDanger: "#f0708a"
+    property string paletteCard: "#213842"
+    property string paletteCardEdge: "#2a4452"
 
     property string status: "loading"
     property string statusDetail: ""

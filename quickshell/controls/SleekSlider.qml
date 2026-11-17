@@ -39,7 +39,7 @@ ColumnLayout {
             id: track
             anchors.verticalCenter: parent.verticalCenter
             width: parent.width; height: 4; radius: 2
-            color: "#1affffff"
+            color: Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.102)
             Rectangle {
                 width: parent.width * s.frac
                 height: parent.height; radius: 2

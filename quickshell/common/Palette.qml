@@ -26,6 +26,9 @@ QtObject {
     readonly property color ok: store ? store.paletteOk : Theme.ok
     readonly property color warning: store ? store.paletteWarning : Theme.warning
     readonly property color danger: store ? store.paletteDanger : Theme.danger
+    // Solid cards (the performance tiles and similar panels).
+    readonly property color card: store ? store.paletteCard : Theme.solidCard
+    readonly property color cardEdge: store ? store.paletteCardEdge : Theme.solidCardEdge
     readonly property color accent: store ? store.accentColor : Theme.accent
 
     // ── Glass surfaces: base colour plus the configured opacity ──────────────

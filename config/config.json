@@ -69,7 +69,9 @@
     "icon_tile": "#33241b",
     "ok": "#a3e635",
     "warning": "#fbbf24",
-    "danger": "#f87171"
+    "danger": "#f87171",
+    "card": "#2e1f17",
+    "card_edge": "#4a3328"
   },
   "ui": {
     "reduced_motion": false

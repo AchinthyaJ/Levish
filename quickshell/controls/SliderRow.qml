@@ -52,7 +52,7 @@ ColumnLayout {
             id: track
             anchors { verticalCenter: parent.verticalCenter; left: parent.left; right: parent.right }
             height: 5; radius: 3
-            color: "#22ffffff"
+            color: Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.133)
 
             Rectangle {
                 width: Math.max(radius * 2,

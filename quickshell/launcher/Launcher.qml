@@ -154,8 +154,8 @@ PanelWindow {
                 Rectangle {
                     implicitWidth: 64; implicitHeight: 28
                     radius: 8
-                    color: "#18ffffff"
-                    border.color: "#22ffffff"
+                    color: Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.094)
+                    border.color: Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.133)
                     border.width: 1
 
                     Row {
@@ -165,7 +165,7 @@ PanelWindow {
                         Rectangle {
                             width: 28; height: 22
                             radius: 6
-                            color: win.viewMode === "grid" ? "#33ffffff" : "transparent"
+                            color: win.viewMode === "grid" ? Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.2) : "transparent"
                             C.Icon {
                                 anchors.centerIn: parent
                                 width: 12; height: 12
@@ -182,7 +182,7 @@ PanelWindow {
                         Rectangle {
                             width: 28; height: 22
                             radius: 6
-                            color: win.viewMode === "list" ? "#33ffffff" : "transparent"
+                            color: win.viewMode === "list" ? Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.2) : "transparent"
                             C.Icon {
                                 anchors.centerIn: parent
                                 width: 12; height: 12
@@ -204,8 +204,8 @@ PanelWindow {
                 Layout.fillWidth: true
                 implicitHeight: 42
                 radius: 12
-                color: "#18ffffff"
-                border.color: search.activeFocus ? Pal.Palette.accent : "#22ffffff"
+                color: Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.094)
+                border.color: search.activeFocus ? Pal.Palette.accent : Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.133)
                 border.width: 1
                 Behavior on border.color { ColorAnimation { duration: Theme.dur(150) } }
 
@@ -237,7 +237,7 @@ PanelWindow {
                             verticalAlignment: Text.AlignVCenter
                             visible: search.text.length === 0
                             text: "Type to search applications…"
-                            color: "#55ffffff"
+                            color: Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.333)
                             font.pixelSize: Theme.fs(15)
                         }
 
@@ -273,7 +273,7 @@ PanelWindow {
                         visible: search.text.length > 0
                         implicitWidth: 20; implicitHeight: 20
                         radius: 10
-                        color: clearMA.containsMouse ? "#33ffffff" : "#18ffffff"
+                        color: clearMA.containsMouse ? Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.2) : Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.094)
                         C.Icon {
                             anchors.centerIn: parent
                             width: 10; height: 10
@@ -304,8 +304,8 @@ PanelWindow {
                         implicitHeight: 24
                         radius: 12
                         readonly property bool isActive: win.activeCategory === modelData
-                        color: isActive ? Pal.Palette.accent : (catMA.containsMouse ? "#22ffffff" : "#12ffffff")
-                        border.color: isActive ? Pal.Palette.accent : "#18ffffff"
+                        color: isActive ? Pal.Palette.accent : (catMA.containsMouse ? Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.133) : Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.071))
+                        border.color: isActive ? Pal.Palette.accent : Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.094)
                         border.width: 1
                         Behavior on color { ColorAnimation { duration: Theme.dur(140) } }
 
@@ -337,7 +337,7 @@ PanelWindow {
             Rectangle {
                 Layout.fillWidth: true
                 implicitHeight: 1
-                color: "#18ffffff"
+                color: Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.094)
             }
 
             // ── App Views: GRID or LIST ────────────────────────────────────
@@ -370,8 +370,8 @@ PanelWindow {
                             anchors.fill: parent
                             anchors.margins: 4
                             radius: 14
-                            color: selected ? "#1fffffff" : "transparent"
-                            border.color: selected ? "#33ffffff" : "transparent"
+                            color: selected ? Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.122) : "transparent"
+                            border.color: selected ? Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.2) : "transparent"
                             border.width: 1
                             Behavior on color { ColorAnimation { duration: Theme.dur(140) } }
 
@@ -442,8 +442,8 @@ PanelWindow {
                         radius: 10
 
                         readonly property bool selected: index === list.currentIndex || listMA.containsMouse
-                        color: selected ? "#1fffffff" : "transparent"
-                        border.color: selected ? "#33ffffff" : "transparent"
+                        color: selected ? Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.122) : "transparent"
+                        border.color: selected ? Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.2) : "transparent"
                         border.width: 1
                         Behavior on color { ColorAnimation { duration: Theme.dur(140) } }
 
@@ -485,7 +485,7 @@ PanelWindow {
                                 visible: win.dockState.isPinned(modelData)
                                 implicitWidth: 48; implicitHeight: 18
                                 radius: 4
-                                color: "#22ffffff"
+                                color: Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.133)
                                 Text {
                                     anchors.centerIn: parent
                                     text: "PINNED"
@@ -522,7 +522,7 @@ PanelWindow {
                 Item { Layout.fillWidth: true }
                 Text {
                     text: "Enter: Launch  ·  Right-Click: Pin/Unpin  ·  Esc: Close"
-                    color: "#55ffffff"
+                    color: Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.333)
                     font.pixelSize: Theme.fs(10)
                 }
             }

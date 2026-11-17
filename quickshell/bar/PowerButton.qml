@@ -9,7 +9,7 @@ Rectangle {
     signal clicked()
     implicitWidth: 24; implicitHeight: 24
     radius: 12
-    color: ma.containsMouse ? "#33e94560" : "#14ffffff"
+    color: ma.containsMouse ? "#33e94560" : Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.078)
     Behavior on color { ColorAnimation { duration: Theme.dur(160) } }
     C.Icon {
         anchors.centerIn: parent

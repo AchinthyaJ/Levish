@@ -30,7 +30,7 @@ RowLayout {
         }
         Rectangle {
             Layout.fillWidth: true; Layout.preferredHeight: 4; radius: 2
-            color: "#22ffffff"
+            color: Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.133)
             Rectangle {
                 width: parent.width * Math.min(1, row.battery.percent / 100)
                 height: parent.height; radius: 2

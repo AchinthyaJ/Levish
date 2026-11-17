@@ -17,8 +17,8 @@ Rectangle {
 
     visible: card.media.player !== ""
     radius: 20
-    color: Theme.solidCard
-    border.color: Theme.solidCardEdge
+    color: Pal.Palette.card
+    border.color: Pal.Palette.cardEdge
     border.width: 1
     implicitHeight: 80
 
@@ -71,7 +71,7 @@ Rectangle {
                     required property var modelData
                     implicitWidth: 30; implicitHeight: 30; radius: 9
                     color: btnMA.containsMouse
-                           ? (modelData.accent ? Qt.rgba(Pal.Palette.accent.r, Pal.Palette.accent.g, Pal.Palette.accent.b, 0.2) : "#22ffffff")
+                           ? (modelData.accent ? Qt.rgba(Pal.Palette.accent.r, Pal.Palette.accent.g, Pal.Palette.accent.b, 0.2) : Qt.rgba(Pal.Palette.ink.r, Pal.Palette.ink.g, Pal.Palette.ink.b, 0.133))
                            : "transparent"
                     Behavior on color { ColorAnimation { duration: Theme.dur(130) } }
                     C.Icon {
