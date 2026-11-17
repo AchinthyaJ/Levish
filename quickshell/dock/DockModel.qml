@@ -151,7 +151,26 @@ Scope {
     }
     Connections {
         target: Hyprland
-        function onRawEvent(event) { root.refreshRunning() }
+        // Window data is only read from Hyprland when asked. Nothing else asks when a window
+        // opens, so each event requests a fresh toplevel list; the Instantiator above then
+        // re-runs refreshRunning() once the new windows' class data has arrived.
+        function onRawEvent(event) {
+            Hyprland.refreshToplevels()
+            root.refreshRunning()
+        }
+    }
+    // A toplevel's class arrives asynchronously (lastIpcObject is filled by a later clients
+    // refresh), so the raw event that announces a new window often runs before its class is
+    // known. Re-check whenever a toplevel is added, removed, or gets its IPC data.
+    Instantiator {
+        model: Hyprland.toplevels
+        delegate: Connections {
+            required property var modelData
+            target: modelData
+            function onLastIpcObjectChanged() { root.refreshRunning() }
+        }
+        onObjectAdded: (index, object) => root.refreshRunning()
+        onObjectRemoved: (index, object) => root.refreshRunning()
     }
     Connections {
         target: root.dockConfig

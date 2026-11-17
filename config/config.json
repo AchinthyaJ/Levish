@@ -1,7 +1,7 @@
 {
   "theme": {
     "accent": "#c8f7ef",
-    "opacity": 0.59,
+    "opacity": 0.64,
     "radius": 28,
     "font_family": "JetBrains Mono",
     "preset": "Tokyo Night"
@@ -21,8 +21,9 @@
     "enabled": true,
     "icon_size": 48,
     "auto_hide": true,
-    "margin": 8,
-    "monitor": ""
+    "margin": 20,
+    "monitor": "",
+    "opacity": 0.59
   },
   "launcher": {
     "default_view": "grid",
@@ -40,5 +41,15 @@
     "timeout_min": 60,
     "before_sleep": true,
     "show_uptime": true
+  },
+  "notifications": {
+    "position": "top-right",
+    "timeout_ms": 3000
+  },
+  "osd": {
+    "timeout_ms": 1500
+  },
+  "clipboard": {
+    "enabled": false
   }
 }

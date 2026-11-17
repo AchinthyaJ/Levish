@@ -79,17 +79,28 @@ Item {
         }
     }
 
-    // Running indicator: a dot, stretched into a short bar when the app has focus.
-    Rectangle {
+    // Running indicators: one dot per open window of this app. The dot of the focused window is
+    // stretched into a short bar.
+    Row {
         anchors.horizontalCenter: parent.horizontalCenter
         y: cell.height - 5
-        height: 4
-        radius: 2
-        width: cell.focusedApp ? 12 : 4
-        color: Theme.dockDot
+        spacing: 3
         opacity: cell.running ? 1 : 0
-        Behavior on width { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
         Behavior on opacity { NumberAnimation { duration: 160 } }
+
+        Repeater {
+            model: cell.windows.length
+            Rectangle {
+                required property int index
+                readonly property bool active: index < cell.windows.length
+                    && cell.dockState.isFocused(cell.windows[index])
+                height: 4
+                radius: 2
+                width: active ? 12 : 4
+                color: Theme.dockDot
+                Behavior on width { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
+            }
+        }
     }
 
     // Tooltip sits in the headroom above the glass.
