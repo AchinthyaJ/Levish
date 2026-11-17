@@ -43,6 +43,7 @@ FloatingWindow {
     // Opens on the page used last time. Follows the saved value once the config has loaded.
     property string currentId: themeStore.settingsLastPage
     property string query: ""
+    property var audio: null          // AudioService, from shell.qml
 
     readonly property var pageList: [
         { id: "overview",   title: "Overview",               icon: "grid" },
@@ -56,6 +57,9 @@ FloatingWindow {
         { id: "clipboard",  title: "Clipboard",              icon: "note" },
         { id: "keyboard",   title: "Keyboard & Shortcuts",   icon: "gear" },
         { id: "displays",   title: "Displays",               icon: "grid" },
+        { id: "sound",      title: "Sound",                  icon: "sun" },
+        { id: "network",    title: "Network",                icon: "grid" },
+        { id: "bluetooth",  title: "Bluetooth",              icon: "grid" },
         { id: "session",    title: "Night Light & Caffeine", icon: "moon" },
         { id: "lock",       title: "Lock & Idle",            icon: "lock" },
         { id: "about",      title: "About Levish",           icon: "note" }
@@ -370,6 +374,9 @@ FloatingWindow {
                     Clipboard { pageId: "clipboard"; themeStore: win.themeStore; clipboard: win.clipboard }
                     Keyboard { pageId: "keyboard"; themeStore: win.themeStore; hypr: win.hypr }
                     Displays { pageId: "displays"; themeStore: win.themeStore; hypr: win.hypr }
+                    Sound { pageId: "sound"; themeStore: win.themeStore; audio: win.audio }
+                    Network { pageId: "network"; themeStore: win.themeStore }
+                    Bluetooth { pageId: "bluetooth"; themeStore: win.themeStore }
                     Session { pageId: "session"; themeStore: win.themeStore; session: win.session }
                     Lock { pageId: "lock"; themeStore: win.themeStore; lock: win.lock }
                     About {

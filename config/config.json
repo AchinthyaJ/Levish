@@ -1,13 +1,13 @@
 {
   "theme": {
     "accent": "#fb923c",
-    "opacity": 0.64,
+    "opacity": 0.85,
     "radius": 28,
     "font_family": "JetBrains Mono",
     "preset": "Tokyo Night"
   },
   "bar": {
-    "height": 36,
+    "height": 33,
     "clock_format": "HH:mm",
     "show_date": true,
     "ws_width": 39,
@@ -16,7 +16,12 @@
     "show_seconds": true,
     "show_gpu": true,
     "show_temp": true,
-    "show_perf": true
+    "show_perf": true,
+    "side_margin": 0,
+    "radius": 11,
+    "position": "top",
+    "border": 0.15,
+    "gap": 0
   },
   "dock": {
     "enabled": true,
@@ -24,7 +29,7 @@
     "auto_hide": true,
     "margin": 20,
     "monitor": "",
-    "opacity": 0.59
+    "opacity": 0.76
   },
   "launcher": {
     "default_view": "grid",
@@ -35,11 +40,12 @@
     "path": "/home/achinthyaj/Pictures/Wallpaper/launcherbackground.png"
   },
   "nightlight": {
-    "enabled": false
+    "enabled": false,
+    "temperature": 5000
   },
   "lock": {
     "layout": "cinematic",
-    "timeout_min": 60,
+    "timeout_min": 47,
     "before_sleep": true,
     "show_uptime": true
   },
@@ -55,7 +61,7 @@
   },
   "config_version": 1,
   "settings": {
-    "last_page": "appearance"
+    "last_page": "displays"
   },
   "palette": {
     "window": "#1c1511",

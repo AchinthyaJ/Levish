@@ -20,11 +20,13 @@ import "clipboard"
 import "hypr"
 import "session"
 import "lock"
+import "audio"
 
 ShellRoot {
     id: root
 
     ThemeStore { id: themeStore }
+    AudioService { id: audioService }
     // The colour palette reads its values from this store. Set through the alias import: the bare
     // name does not reach the singleton from this file.
     Component.onCompleted: Pal.Palette.store = themeStore
@@ -132,6 +134,7 @@ ShellRoot {
         hypr: hyprQuery
         session: sessionTools
         lock: lockService
+        audio: audioService
         open: root.settingsOpen
         onCloseRequested: root.settingsOpen = false
     }

@@ -27,7 +27,6 @@ Item {
 
     // Derived colors the shell components already consume.
     readonly property color glassColor: Qt.rgba(barBase.r, barBase.g, barBase.b, glassOpacity)
-    readonly property color glassEdge: "#33ffffff"
     readonly property color dockGlass: Qt.rgba(dockBase.r, dockBase.g, dockBase.b, dockOpacity)
 
     // Palette: opaque base colours. Opacity is applied separately (theme.opacity, dock.opacity).

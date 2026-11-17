@@ -510,3 +510,22 @@ Known limits, not done:
 - Not verified on screen: the side layouts and the hover reveal for side docks. A fullscreen game on the same workspace covers the Top layer, and I couldn't get a clean capture. The reveal zone for side docks has not been tested.
 - The temporary change to `config/config.json` for this check was reverted; the file's checksum matches the original.
 - Not moved: the on-screen overlays (OSD and the top-bar popups) still assume a top or bottom bar and the bottom dock.
+
+### Audio, stage 1: native PipeWire backend and Sound page
+
+Audit first:
+- `backend/audio/pipewire.py` shells out to `wpctl` and `pactl` and parses their text. The Control Centre reads that state. It has no per-application mixer, and no way to change the default device.
+- Quickshell ships a native PipeWire module (`Quickshell.Services.Pipewire`) with nodes, the default sink and source, stream detection, and volume and mute on each node. The new code uses it.
+
+Done:
+- `quickshell/audio/AudioService.qml`: one instance in `shell.qml`. It tracks every node with `PwObjectTracker`, and exposes output devices, input devices (monitor sources excluded) and playing applications. It can set the default output or input, and set volume and mute.
+- Settings → Sound (after Displays): status (PipeWire connected, default output), output devices (default badge, "Use as default", volume, mute), input devices (same), and an application mixer (icon, name, volume, mute). Each section has an empty state.
+- Checked on screen with real devices: the default output and input show, and the volume and mute controls appear. Nothing was playing, so the application mixer showed its empty state.
+
+Not done in this stage:
+- Playing audio through a test tone, and checking the application mixer with a real stream. Not run, to avoid making noise.
+- Moving a stream to another output. Quickshell's API does not create links, so this needs `pw-metadata` or a native link call.
+- Input routing per application, ports and profiles, microphone level meter, noise suppression, sample rate, channels, latency and diagnostics.
+- Hotplug handling is reactive through the node list, but unplugging a device has not been tested.
+- The Control Centre still reads the older `wpctl`/`pactl` backend. Moving it to this service removes the duplicate integration; that is the next step.
+- Network and Bluetooth dedicated pages, and the floating islands mode, are not started.
