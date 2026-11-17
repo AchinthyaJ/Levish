@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import QtQuick.Controls
 import "../components"
 import "../../common/Theme.js" as Theme
+import "../../common" as Pal
 
 // Keyboard & shortcuts: the keybinds Hyprland has loaded, read-only, with conflict detection.
 // Editing binds is not offered yet: changes would need writing Hyprland config and a reload.
@@ -11,6 +12,7 @@ Flickable {
     property var themeStore
     property var hypr                  // HyprQuery
     property string pageId: ""
+    ScrollBar.vertical: PageScrollBar { accent: page.themeStore.accentColor }
     property string keywords: "keyboard keybind keybinding shortcut shortcuts key binding conflict super mod hyprland layout"
     readonly property var resetPaths: []
     readonly property color accent: themeStore.accentColor
@@ -66,7 +68,7 @@ Flickable {
             SettingsRow {
                 label: "Editing shortcuts"
                 hint: "Shortcuts are shown here as Hyprland has them loaded. Editing them is not available yet."
-                Text { text: "Read-only"; color: Theme.muted; font.pixelSize: Theme.fontSmall }
+                Text { text: "Read-only"; color: Pal.Palette.muted; font.pixelSize: Theme.fontSmall }
             }
         }
 
@@ -80,8 +82,8 @@ Flickable {
                     width: parent ? parent.width : 300
                     implicitHeight: rowL.implicitHeight + 14
                     radius: Theme.radiusRow
-                    color: Theme.controlFill
-                    border.color: conflict ? Theme.warning : Theme.surfaceEdge
+                    color: Pal.Palette.controlFill
+                    border.color: conflict ? Pal.Palette.warning : Pal.Palette.surfaceEdge
 
                     RowLayout {
                         id: rowL
@@ -90,7 +92,7 @@ Flickable {
                         Text {
                             Layout.preferredWidth: 220
                             text: page.comboText(modelData)
-                            color: Theme.textPrimary
+                            color: Pal.Palette.textPrimary
                             font.pixelSize: Theme.fontSmall
                             font.weight: Font.DemiBold
                             elide: Text.ElideRight
@@ -100,7 +102,7 @@ Flickable {
                             Layout.fillWidth: true
                             text: modelData.dispatcher + (modelData.arg !== "" ? "  " + modelData.arg : "")
                                   + (modelData.submap ? "   [" + modelData.submap + "]" : "")
-                            color: Theme.textSecondary
+                            color: Pal.Palette.textSecondary
                             font.pixelSize: Theme.fontCaption
                             elide: Text.ElideRight
                             textFormat: Text.PlainText
@@ -108,7 +110,7 @@ Flickable {
                         Text {
                             visible: conflict
                             text: "CONFLICT"
-                            color: Theme.warning
+                            color: Pal.Palette.warning
                             font.pixelSize: Theme.fontCaption
                             font.weight: Font.DemiBold
                         }
@@ -119,7 +121,7 @@ Flickable {
                 visible: page.hypr && page.hypr.binds.length === 0 && page.hypr.status === "ok"
                 Layout.fillWidth: true
                 text: "Hyprland reports no keybinds."
-                color: Theme.muted
+                color: Pal.Palette.muted
                 font.pixelSize: Theme.fontSmall
             }
         }

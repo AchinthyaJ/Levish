@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import "../../common" as C
 import "../../common/Theme.js" as Theme
+import "../../common" as Pal
 
 Item {
     id: root
@@ -18,7 +19,7 @@ Item {
     visible: opacity > 0
     opacity: hasMessage ? 1 : 0
 
-    Behavior on opacity { NumberAnimation { duration: 200 } }
+    Behavior on opacity { NumberAnimation { duration: Theme.dur(200) } }
 
     Rectangle {
         id: pill
@@ -27,7 +28,7 @@ Item {
         implicitWidth: statusRow.implicitWidth + Math.round(20 * root.screenScale)
         radius: height / 2
 
-        readonly property color accent: root.themeStore ? root.themeStore.accentColor : "#c8f7ef"
+        readonly property color accent: root.themeStore ? root.themeStore.accentColor : Pal.Palette.accent
 
         color: {
             if (root.status === "error") return "#33f0708a"

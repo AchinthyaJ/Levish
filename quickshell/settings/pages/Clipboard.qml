@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import QtQuick.Controls
 import "../components"
 import "../../common/Theme.js" as Theme
+import "../../common" as Pal
 
 // Clipboard history settings and the history itself. The history is kept in memory only.
 Flickable {
@@ -10,6 +11,7 @@ Flickable {
     property var themeStore
     property var clipboard              // ClipboardService
     property string pageId: ""
+    ScrollBar.vertical: PageScrollBar { accent: page.themeStore.accentColor }
     property string keywords: "clipboard history copy paste pin clear privacy text"
     readonly property var resetPaths: ["clipboard.enabled", "clipboard.max_items"]
     readonly property color accent: themeStore.accentColor
@@ -64,8 +66,8 @@ Flickable {
                     width: parent ? parent.width : 300
                     implicitHeight: row.implicitHeight + 16
                     radius: Theme.radiusRow
-                    color: Theme.controlFill
-                    border.color: modelData.pinned ? page.accent : Theme.surfaceEdge
+                    color: Pal.Palette.controlFill
+                    border.color: modelData.pinned ? page.accent : Pal.Palette.surfaceEdge
 
                     RowLayout {
                         id: row
@@ -77,14 +79,14 @@ Flickable {
                             Text {
                                 Layout.fillWidth: true
                                 text: modelData.text.replace(/\s+/g, " ")
-                                color: Theme.textPrimary
+                                color: Pal.Palette.textPrimary
                                 font.pixelSize: Theme.fontSmall
                                 elide: Text.ElideRight
                                 textFormat: Text.PlainText
                             }
                             Text {
                                 text: modelData.time + (modelData.pinned ? "  ·  pinned" : "")
-                                color: Theme.muted
+                                color: Pal.Palette.muted
                                 font.pixelSize: Theme.fontCaption
                             }
                         }
@@ -100,7 +102,7 @@ Flickable {
                 text: page.themeStore.clipboardEnabled
                     ? "Copy some text and it will appear here."
                     : "Turn on \"Record what I copy\" to start a history."
-                color: Theme.muted
+                color: Pal.Palette.muted
                 font.pixelSize: Theme.fontSmall
                 wrapMode: Text.Wrap
             }

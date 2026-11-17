@@ -6,6 +6,7 @@ import QtQuick.Layouts
 import Quickshell.Io
 import "../common" as C
 import "../common/Theme.js" as Theme
+import "../common" as Pal
 
 Rectangle {
     id: card
@@ -28,7 +29,7 @@ Rectangle {
         // Album art (or note icon fallback)
         Rectangle {
             Layout.preferredWidth: 52; Layout.preferredHeight: 52
-            radius: 12; color: "#1fc8f7ef"; clip: true
+            radius: 12; color: Qt.rgba(Pal.Palette.accent.r, Pal.Palette.accent.g, Pal.Palette.accent.b, 0.122); clip: true
             Image {
                 id: art; anchors.fill: parent
                 source: card.media.art_url || ""
@@ -38,7 +39,7 @@ Rectangle {
             C.Icon {
                 anchors.centerIn: parent
                 width: 20; height: 20
-                kind: "note"; tint: Theme.accent
+                kind: "note"; tint: Pal.Palette.accent
                 visible: !art.visible
             }
         }
@@ -47,12 +48,12 @@ Rectangle {
             Layout.fillWidth: true; spacing: 2
             Text {
                 text: card.media.title || ""
-                color: Theme.text; font.pixelSize: 13; font.weight: Font.Medium
+                color: Pal.Palette.text; font.pixelSize: Theme.fs(13); font.weight: Font.Medium
                 elide: Text.ElideRight; Layout.fillWidth: true
             }
             Text {
                 text: card.media.artist || ""
-                color: Theme.muted; font.pixelSize: 10
+                color: Pal.Palette.muted; font.pixelSize: Theme.fs(10)
                 elide: Text.ElideRight; Layout.fillWidth: true
             }
         }
@@ -70,14 +71,14 @@ Rectangle {
                     required property var modelData
                     implicitWidth: 30; implicitHeight: 30; radius: 9
                     color: btnMA.containsMouse
-                           ? (modelData.accent ? "#33c8f7ef" : "#22ffffff")
+                           ? (modelData.accent ? Qt.rgba(Pal.Palette.accent.r, Pal.Palette.accent.g, Pal.Palette.accent.b, 0.2) : "#22ffffff")
                            : "transparent"
-                    Behavior on color { ColorAnimation { duration: 130 } }
+                    Behavior on color { ColorAnimation { duration: Theme.dur(130) } }
                     C.Icon {
                         anchors.centerIn: parent
                         width: modelData.accent ? 16 : 13; height: modelData.accent ? 16 : 13
                         kind: modelData.kind
-                        tint: modelData.accent ? Theme.accent : Theme.text
+                        tint: modelData.accent ? Pal.Palette.accent : Pal.Palette.text
                     }
                     MouseArea {
                         id: btnMA; anchors.fill: parent; hoverEnabled: true

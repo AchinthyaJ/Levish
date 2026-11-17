@@ -1,6 +1,7 @@
 // Time over date, stacked. Responsive to user themeStore settings.
 import QtQuick
 import "../common/Theme.js" as Theme
+import "../common" as Pal
 
 Column {
     id: clock
@@ -16,18 +17,18 @@ Column {
             const withSec = (themeStore && themeStore.showSeconds) ? (fmt + ":ss") : fmt
             return Qt.formatTime(clock.now, withSec)
         }
-        color: Theme.text
+        color: Pal.Palette.text
         font.family: (themeStore && themeStore.fontFamily) ? themeStore.fontFamily : "JetBrains Mono"
-        font.pixelSize: 14
+        font.pixelSize: Theme.fs(14)
         font.weight: Font.Bold
     }
     Text {
         anchors.right: parent.right
         visible: themeStore ? themeStore.showDate : true
         text: Qt.formatDate(clock.now, "ddd d MMM").toUpperCase()
-        color: Theme.muted
+        color: Pal.Palette.muted
         font.family: (themeStore && themeStore.fontFamily) ? themeStore.fontFamily : "JetBrains Mono"
-        font.pixelSize: 9
+        font.pixelSize: Theme.fs(9)
         font.letterSpacing: 1
     }
 }

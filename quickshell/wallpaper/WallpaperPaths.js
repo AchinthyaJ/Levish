@@ -29,15 +29,40 @@ function stateDir(xdgState, home) {
 
 // argv that writes a hyprpaper config for one image and restarts hyprpaper with it.
 // $1 = image path, $2 = fit mode, $3 = config file, $4 = log file.
-function applyCommand(imagePath, fitMode, confFile, logFile) {
-    const script =
-        'mkdir -p "$(dirname "$3")" && '
-        + 'printf "wallpaper {\\n    monitor =\\n    path = %s\\n    fit_mode = %s\\n}\\n\\nsplash = false\\n" "$1" "$2" > "$3" && '
-        + 'pkill -x hyprpaper 2>/dev/null; sleep 0.15; '
-        + 'setsid hyprpaper -c "$3" >"$4" 2>&1 &'
+// Builds the hyprpaper config text. `entries` is [{ monitor, path }]; an empty monitor name means
+// every monitor. Entries are written in order, so the general wallpaper comes first and per-monitor
+// overrides after it.
+function confText(entries, fitMode) {
     // ThemeStore calls this mode "stretch"; hyprpaper spells it "fill".
     const fit = fitMode === "stretch" ? "fill" : fitMode
-    return ["sh", "-c", script, "sh", imagePath, fit, confFile, logFile]
+    let out = ""
+    for (const e of entries) {
+        out += "wallpaper {\n    monitor = " + (e.monitor || "") + "\n    path = " + e.path + "\n    fit_mode = " + fit + "\n}\n\n"
+    }
+    return out + "splash = false\n"
+}
+
+// Parses "DP-1=/a.png;HDMI-A-1=/b.png" into [{ monitor, path }]. Blank or malformed items are skipped.
+function parseMonitors(text) {
+    const out = []
+    for (const item of String(text || "").split(";")) {
+        const i = item.indexOf("=")
+        if (i <= 0) continue
+        const monitor = item.substring(0, i).trim()
+        const path = item.substring(i + 1).trim()
+        if (monitor.length && path.length) out.push({ monitor: monitor, path: path })
+    }
+    return out
+}
+
+function applyCommand(entries, fitMode, confFile, logFile) {
+    const conf = confText(entries, fitMode)
+    const script =
+        'mkdir -p "$(dirname "$2")" && '
+        + 'printf "%s" "$1" > "$2" && '
+        + 'pkill -x hyprpaper 2>/dev/null; sleep 0.15; '
+        + 'setsid hyprpaper -c "$2" >"$3" 2>&1 &'
+    return ["sh", "-c", script, "sh", conf, confFile, logFile]
 }
 
 var FIT_MODES = ["cover", "contain", "stretch", "tile"]

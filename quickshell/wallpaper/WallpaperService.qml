@@ -28,7 +28,9 @@ Item {
     function apply() {
         if (!svc.path || svc.path.trim() === "") return
         applyProc.running = false
-        applyProc.command = Paths.applyCommand(svc.path.trim(), svc.fitMode, svc.confFile, svc.logFile)
+        // The general wallpaper first, then any per-monitor overrides from Settings.
+        const entries = [{ monitor: "", path: svc.path.trim() }].concat(Paths.parseMonitors(svc.monitorOverrides))
+        applyProc.command = Paths.applyCommand(entries, svc.fitMode, svc.confFile, svc.logFile)
         applyProc.running = true
     }
 
@@ -50,7 +52,9 @@ Item {
         }
     }
 
+    readonly property string monitorOverrides: themeStore ? themeStore.wallpaperMonitors : ""
     onPathChanged: apply()
+    onMonitorOverridesChanged: apply()
     onFitModeChanged: apply()
     onCustomFolderChanged: scan()
 

@@ -19,9 +19,16 @@ Scope {
     }
 
     readonly property int iconSize: themeStore.dockIconSize
+    readonly property int cornerRadius: themeStore.cornerRadius
+    readonly property int spacing: themeStore.dockSpacing
+    readonly property real zoom: themeStore.dockZoom
+    readonly property real shadow: themeStore.dockShadow
+    readonly property color edgeColor: Qt.rgba(1, 1, 1, themeStore.borderStrength)
     readonly property bool autoHide: themeStore.dockAutoHide
     readonly property bool enabled: themeStore.dockEnabled
     readonly property int bottomMargin: themeStore.dockMargin
+    // Screen edge the dock sits on: bottom, top, left or right.
+    readonly property string position: themeStore.dockPosition
     readonly property string monitorName: themeStore.dockMonitor
     readonly property color glassColor: themeStore.dockGlass
 

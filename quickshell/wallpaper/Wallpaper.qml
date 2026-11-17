@@ -4,6 +4,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
+import "../common/Theme.js" as Theme
 
 PanelWindow {
     id: win
@@ -71,7 +72,7 @@ PanelWindow {
         property: "opacity"
         from: 0
         to: 1
-        duration: 300
+        duration: Theme.dur(300)
         easing.type: Easing.InOutQuad
         onFinished: {
             win.activeSource = win.pendingSource

@@ -390,3 +390,123 @@ Known gap: the power-menu and Control Center Lock action runs "loginctl lock-ses
 - Control socket commands now go through an ordered queue, so no relative step is dropped.
 - Release cleanup: Eww stack, unrelated installer script, unused scripts, legacy `settings.json` and the unused `shortcuts` list removed. Native lock option removed (never connected). Weather module off by default. Wi-Fi device no longer hard-coded. Version 1.0.0 added (`VERSION`, `quickshell/common/Version.js`).
 - Open before release: `config/config.json` still holds a home-directory wallpaper path; the native lock files under `quickshell/lock/` (`LockSurface.qml`, `PamAuth.qml`, `pam/passwd`) are untracked and unused; no LICENSE yet; screenshots not yet replaced.
+
+### Stage 1 (re-audit against the code)
+
+Method: every key that Settings writes was checked against the schema in `ThemeStore.qml`, and every schema entry was checked for a reader in the QML outside Settings (by its `prop` name). This verifies that a control writes a key that is defined and that something reads it. It does not prove the effect works on screen.
+
+Results:
+- All keys the Settings pages write are defined in the `ThemeStore` schema. No orphan writes.
+- Corner radius is dead. `theme.radius` (`cornerRadius`) is in the schema, but nothing reads it, and no Settings page has a control for it. Surfaces use the constants in `common/Theme.js` (`radiusIsland`, `dockRadius`, `dropRadius`). Earlier in this document, Appearance was listed as having a radius control. That was wrong. Fix: either wire the constants to the setting or remove the key.
+- Dock opacity is live. `dock.opacity` reaches the dock through `ThemeStore.dockGlass`.
+- Bar, lock, OSD and notification keys all have readers under their `prop` names.
+
+Session changes (not yet verified on screen):
+- Dock: unpinned running apps were missing. Root cause: `Hyprland.refreshToplevels()` only ran at shell start, so a new window's class (`lastIpcObject`) stayed empty and the dock skipped it. Fix: each Hyprland event now requests a toplevel refresh, and the dock re-checks when a window's IPC data arrives. Dots are now one per open window, with the focused window's dot stretched.
+- Dock debug logging was added and removed again. No `DOCKDBG` lines remain.
+- Settings: `components/PageScrollBar.qml` is attached to all 14 pages as a vertical scroll slider. It loads without QML errors. Not checked on screen.
+
+Still open:
+- A visual check of the dock with an app opened from the application menu. The fix has not been confirmed on screen.
+- Dead corner-radius setting (above).
+- Stage 2 of the brief (configuration, state management, reusable components) and the feature stages are not started.
+
+### Settings scrollbars (sidebar and pages)
+
+- Pages: `components/PageScrollBar.qml` is attached to all 14 pages.
+- Sidebar: the navigation entries (or search results) are in a `Flickable` with the same scrollbar. Up/Down keep the focused entry in view. Search and the save-status footer stay fixed.
+- The shell loads with no QML errors. Not yet checked on screen.
+
+### Stage 2 (configuration architecture)
+
+Done:
+- One validator for the whole config. `quickshell/common/ConfigSchema.js` holds the schema (67 keys), the coercion rules, the migrations and the serialiser. It has no Qt dependency. `ThemeStore.qml` now calls it and no longer carries its own copy of the schema.
+- Versioning. Files carry `config_version` (currently 1). Unversioned files are version 0. Migrations are an ordered list, so a future change adds an entry rather than editing old ones.
+- Migration 0→1 moves the legacy top-level `monitor` key to `dock.monitor` (an existing `dock.monitor` wins).
+- Newer files are protected. A file with a higher `config_version` loads, but nothing is written to it, so this Levish cannot downgrade it. The Settings status line says so.
+- Unknown keys survive every save (for example `shortcuts`, `metrics_interval`).
+- Tests: `tests/config_schema.test.js`, 18 tests (run with `node --test tests/`). They cover every schema default, bounds and enum choices, coercion of each kind, rejected values, migration, newer-version handling, unknown-key preservation and save/load round-trips. All pass.
+
+Not done in Stage 2:
+- Import and export. `ConfigSchema.js` can load and serialise, but no UI or ThemeStore call uses it yet.
+- Rolling backups. Only a corrupt file is backed up, once.
+- Dead key `theme.radius` (see Stage 1). It is still in the schema and still has no reader. Decide: wire it to the surfaces or remove it.
+- Python `backend/config.py` keeps its own small defaults. It is limited to backend-owned keys, but it is not generated from the schema.
+- `tests/test_release.py` fails on the user's live `config/config.json`, which contains `/home/achinthyaj/Pictures/...`. This was failing before Stage 2. Fix by changing the wallpaper path, or by making the test check the shipped defaults rather than the live file.
+- QML side not run through a live check of the load path beyond a clean reload. The validator itself is covered by the Node tests.
+
+### Corner radius (fixed)
+
+- Appearance → Glass now has a "Corner radius" slider (4–28 px), writing `theme.radius`. It is also in that page's reset list.
+- The dock reads it through `DockSettings.cornerRadius`. The dock's glass body and its shadow layers use it.
+- Not wired: the rest of the live bar and the panels still use their own fixed radii. Making them follow the setting is a larger change; decide whether it is wanted.
+- `bar/Island.qml` is not used by anything in the tree. It is dead code and can be removed.
+
+### Stage 3 (visual foundation)
+
+Checked first: Settings already draws its colours from `common/Theme.js`. Only three literals remained (the accent fallback in Lock, the scrollbar default, and the swatch list, which is a user choice on purpose).
+
+Done:
+- Reduced motion. New key `ui.reduced_motion` with a switch in Appearance → Motion. `Theme.dur(ms)` scales short animations (every literal duration of 600 ms or less, 91 places in 25 files). Changes apply to animations that start after the setting changes, so a full switch needs a shell restart.
+- Last visited page. New key `settings.last_page`. Settings opens on it, and each navigation saves it (no write when the page is unchanged).
+
+Not done in Stage 3:
+- Longer animations (700 ms and up, lock-screen loops and the 1 s clock pulse) still ignore reduced motion.
+- Basic and advanced modes: no rows are marked as advanced yet.
+- Breadcrumbs on each page.
+- Overview hero and preview tiles were not re-checked against the brief.
+- Nothing was viewed on screen in this stage.
+
+### Batch: finishing Stages 2–3
+
+- Reduced motion now covers the 700 ms, 800 ms and 1000 ms transitions too (`common/Ring.qml`, `lock/auth/PasswordField.qml`, `lock/clock/HeroClock.qml`). Only the long lock-screen loops (14–22 s) still run at full speed by design.
+- Export and import. `ThemeStore.exportText()` and `importText(text)` use the same validator and migrations as the loader. Import changes only the keys the file contains, rejects a file from a newer Levish, and lists any values reset to default. About → Export and import is the UI (text areas, no file dialog). Not run live.
+- Breadcrumb in the Settings header ("Settings › Page").
+- `bar/Island.qml` deleted (unused).
+- Still open: basic and advanced modes, a rolling backup on every save, a rewrite of the remaining Stage 4–7 features, and the `test_release.py` home-path failure, which needs your decision about `config/config.json`.
+
+### Stage 4 (core customisation): partial
+
+Done (schema, store, consumer and Settings control for each):
+- Top bar zones can be hidden: performance, workspaces, window title, clock, status indicators, tray (`bar.show_*`, Top Bar → Zones).
+- Dock spacing between icons (`dock.spacing`, 0–24 px) and hover enlargement (`dock.zoom`, 100–150 %). Both on Dock → Size and position.
+
+Not done in Stage 4:
+- Top bar position (top/bottom), width, margins and padding, border, and widget ordering. The bar is anchored to the top edge in `bar/Bar.qml`, so position needs a layout change.
+- Dock position (left/right/top) and magnification curve.
+- Appearance: font size and weight, UI density, border visibility, shadow intensity, theme mode (light/dark), wallpaper-derived colours, and import or export of named themes.
+- Launcher: icon size, sort order, hidden apps, and per-entry actions.
+- Wallpaper: per-monitor wallpapers, scheduled changes, and a wallpaper library with favourites.
+- Lock screen: most options already exist in the schema, but the Settings page has not been checked against the brief.
+- Nothing from Stage 4 has been viewed on screen.
+
+### Stage 4 (core customisation): status after the full pass
+
+Done (schema key, store property, consumer, Settings control and reset entry for each):
+- Top bar: zones can be hidden (performance, workspaces, window title, clock, status, tray). Edge (top or bottom), distance from the edge, side margins, corner radius and an optional outline.
+- Dock: icon spacing, hover enlargement, shadow strength, and border strength (shared with panels through `theme.border`).
+- Appearance: text size (`theme.font_scale`, every literal pixel size goes through `Theme.fs`), border strength, and an accent taken from the wallpaper (ImageMagick average, saturation raised; needs `magick` installed).
+- Launcher: icon size, sort order (name or pinned first), and a hidden-applications list (comma-separated desktop IDs).
+- Wallpaper: per-monitor images. hyprpaper gets one block per override, with the general wallpaper first. Covered by `tests/wallpaper_paths.test.js`, which checks that paths are passed as arguments, not spliced into the shell script.
+- Lock screen: the four text and image fields that had no control (greeting, wallpaper path, avatar, weather location) now have one.
+- Dead `Island.qml` removed.
+
+Known limits, not done:
+- Dock position (left, right, top). The dock's hover and auto-hide geometry is written for the bottom edge.
+- Light and dark theme modes. The palette is a single dark set and there is no light palette.
+- Density. No setting changes spacing across the shell.
+- Wallpaper favourites, history and a library view. Only the gallery and interval rotation exist.
+- Time-of-day wallpaper schedules. Only the interval rotation exists.
+- Font family has a control (Appearance → Typography) and is applied only on the lock screen. Other text uses the system default.
+- Text size, motion and the top bar edge are read when items are created. A change takes full effect after a shell restart. The edge change is applied on the next layout pass.
+- The hidden-applications field is a text list, not per-app checkboxes.
+- Nothing from this pass has been viewed on screen. The shell loads with no QML errors and the Node tests pass (23 of 23).
+
+### Stage 4: dock position
+
+- `dock.position` (bottom, top, left, right) with a control in Dock → Size and position.
+- The dock window anchors to the chosen edge. Items lay out in a row on the top and bottom edges and a column on the sides. Dots sit on the outer side, and tooltips open toward the middle of the screen.
+- Verified: the shell reloads with no QML errors. On the bottom edge the surface is unchanged (422×16 when auto-hidden). On the left edge the surface was 138×422 when shown, with auto-hide off.
+- Not verified on screen: the side layouts and the hover reveal for side docks. A fullscreen game on the same workspace covers the Top layer, and I couldn't get a clean capture. The reveal zone for side docks has not been tested.
+- The temporary change to `config/config.json` for this check was reverted; the file's checksum matches the original.
+- Not moved: the on-screen overlays (OSD and the top-bar popups) still assume a top or bottom bar and the bottom dock.

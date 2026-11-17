@@ -4,6 +4,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import "../common/Theme.js" as Theme
+import "../common" as Pal
 
 ColumnLayout {
     id: level
@@ -36,7 +37,7 @@ ColumnLayout {
                 Rectangle {
                     anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter; leftMargin: 8; rightMargin: 8 }
                     height: 1
-                    color: Theme.surfaceEdge
+                    color: Pal.Palette.surfaceEdge
                 }
             }
 
@@ -46,7 +47,7 @@ ColumnLayout {
                 Layout.fillWidth: true
                 Layout.preferredHeight: visible ? 30 : 0
                 radius: 8
-                color: rowMa.containsMouse && entry.enabled ? Theme.surfaceHover : "transparent"
+                color: rowMa.containsMouse && entry.enabled ? Pal.Palette.surfaceHover : "transparent"
                 opacity: entry.enabled ? 1 : 0.45
 
                 RowLayout {
@@ -71,7 +72,7 @@ ColumnLayout {
                     Text {
                         Layout.fillWidth: true
                         text: entry.text
-                        color: Theme.textPrimary
+                        color: Pal.Palette.textPrimary
                         font.pixelSize: Theme.fontSmall
                         elide: Text.ElideRight
                         textFormat: Text.PlainText
@@ -80,7 +81,7 @@ ColumnLayout {
                     Text {
                         visible: entry.hasChildren
                         text: entryCol.expanded ? "⌄" : "›"
-                        color: Theme.muted
+                        color: Pal.Palette.muted
                         font.pixelSize: Theme.fontBody
                     }
                 }

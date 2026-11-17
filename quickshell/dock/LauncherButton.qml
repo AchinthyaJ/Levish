@@ -3,45 +3,49 @@
 import QtQuick
 import "../common" as C
 import "../common/Theme.js" as Theme
+import "../common" as Pal
 
 Item {
     id: btn
 
     required property var dockState   // DockModel
     required property int iconSize
+    property real zoom: Theme.dockZoom
+    property string side: "bottom"
 
-    width: iconSize + Theme.dockCellPad
-    height: iconSize + 14
+    readonly property bool vertical: side === "left" || side === "right"
+    width: vertical ? iconSize + 14 : iconSize + Theme.dockCellPad
+    height: vertical ? iconSize + Theme.dockCellPad : iconSize + 14
 
     Rectangle {
         anchors.fill: parent
         anchors.margins: 2
         radius: 14
-        color: hover.containsMouse ? Theme.dockHover : "transparent"
-        Behavior on color { ColorAnimation { duration: 160 } }
+        color: hover.containsMouse ? Pal.Palette.dockHover : "transparent"
+        Behavior on color { ColorAnimation { duration: Theme.dur(160) } }
     }
 
     Rectangle {
         id: tile
         width: btn.iconSize * 0.9
         height: btn.iconSize * 0.9
-        x: (btn.width - width) / 2
-        y: 4 + (btn.iconSize - height) / 2
+        x: btn.vertical ? 4 + (btn.iconSize - width) / 2 : (btn.width - width) / 2
+        y: btn.vertical ? (btn.height - height) / 2 : 4 + (btn.iconSize - height) / 2
         radius: width * 0.3
         color: hover.containsMouse ? "#26ffffff" : "#16ffffff"
-        border.color: Theme.dockEdge
+        border.color: Pal.Palette.dockEdge
         border.width: 1
-        transformOrigin: Item.Bottom
-        scale: hover.containsMouse ? Theme.dockZoom : 1
-        Behavior on scale { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
-        Behavior on color { ColorAnimation { duration: 160 } }
+        transformOrigin: Item.Center
+        scale: hover.containsMouse ? zoom : 1
+        Behavior on scale { NumberAnimation { duration: Theme.dur(180); easing.type: Easing.OutCubic } }
+        Behavior on color { ColorAnimation { duration: Theme.dur(160) } }
 
         C.Icon {
             anchors.centerIn: parent
             width: tile.width * 0.5
             height: tile.height * 0.5
             kind: "apps"
-            tint: Theme.text
+            tint: Pal.Palette.text
         }
     }
 

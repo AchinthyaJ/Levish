@@ -5,6 +5,7 @@ import QtQuick
 import QtQuick.Layouts
 import "../common" as C
 import "../common/Theme.js" as Theme
+import "../common" as Pal
 
 Rectangle {
     id: tile
@@ -23,11 +24,11 @@ Rectangle {
     Layout.fillWidth: true
     implicitHeight: 66
     radius: 22
-    color: checked ? "#24c8f7ef" : "#12ffffff"
+    color: checked ? Qt.rgba(Pal.Palette.accent.r, Pal.Palette.accent.g, Pal.Palette.accent.b, 0.141) : "#12ffffff"
     border.width: 1
-    border.color: checked ? "#40c8f7ef" : "#14ffffff"
-    Behavior on color { ColorAnimation { duration: 180 } }
-    Behavior on border.color { ColorAnimation { duration: 180 } }
+    border.color: checked ? Qt.rgba(Pal.Palette.accent.r, Pal.Palette.accent.g, Pal.Palette.accent.b, 0.251) : "#14ffffff"
+    Behavior on color { ColorAnimation { duration: Theme.dur(180) } }
+    Behavior on border.color { ColorAnimation { duration: Theme.dur(180) } }
 
     // ── Toggle area: everything left of the chevron column ───────────────
     MouseArea {
@@ -41,7 +42,7 @@ Rectangle {
             anchors.fill: parent
             radius: tile.radius
             color: toggleMA.containsMouse ? "#14ffffff" : "transparent"
-            Behavior on color { ColorAnimation { duration: 140 } }
+            Behavior on color { ColorAnimation { duration: Theme.dur(140) } }
         }
 
         RowLayout {
@@ -52,20 +53,20 @@ Rectangle {
                 id: badge
                 Layout.preferredWidth: 32; Layout.preferredHeight: 32
                 radius: 16
-                color: tile.checked ? Theme.accent : "#18ffffff"
-                Behavior on color { ColorAnimation { duration: 180 } }
+                color: tile.checked ? Pal.Palette.accent : "#18ffffff"
+                Behavior on color { ColorAnimation { duration: Theme.dur(180) } }
                 C.Icon {
                     anchors.centerIn: parent
                     width: 15; height: 15
                     kind: tile.kind
-                    tint: tile.checked ? Theme.solidPanel : Theme.text
+                    tint: tile.checked ? Theme.solidPanel : Pal.Palette.text
                 }
                 // Pulse while the radio is switching.
                 SequentialAnimation on opacity {
                     running: tile.busy
                     loops: Animation.Infinite
-                    NumberAnimation { to: 0.25; duration: 550; easing.type: Easing.InOutQuad }
-                    NumberAnimation { to: 1;    duration: 550; easing.type: Easing.InOutQuad }
+                    NumberAnimation { to: 0.25; duration: Theme.dur(550); easing.type: Easing.InOutQuad }
+                    NumberAnimation { to: 1;    duration: Theme.dur(550); easing.type: Easing.InOutQuad }
                 }
                 onOpacityChanged: if (!tile.busy && opacity !== 1) opacity = 1
             }
@@ -73,14 +74,14 @@ Rectangle {
                 Layout.fillWidth: true
                 spacing: 0
                 Text {
-                    text: tile.title; color: Theme.text
-                    font.pixelSize: 13; font.weight: Font.DemiBold
+                    text: tile.title; color: Pal.Palette.text
+                    font.pixelSize: Theme.fs(13); font.weight: Font.DemiBold
                     elide: Text.ElideRight; Layout.fillWidth: true
                 }
                 Text {
                     text: tile.busy ? tile.busyLabel : tile.subtitle
-                    color: tile.busy ? Theme.accent : Theme.muted
-                    font.pixelSize: 10
+                    color: tile.busy ? Pal.Palette.accent : Pal.Palette.muted
+                    font.pixelSize: Theme.fs(10)
                     elide: Text.ElideRight; Layout.fillWidth: true
                 }
             }
@@ -107,11 +108,11 @@ Rectangle {
             anchors.centerIn: parent
             width: 28; height: 28; radius: 14
             color: chevMA.containsMouse ? "#22ffffff" : "transparent"
-            Behavior on color { ColorAnimation { duration: 140 } }
+            Behavior on color { ColorAnimation { duration: Theme.dur(140) } }
             C.Icon {
                 anchors.centerIn: parent
                 width: 12; height: 12
-                kind: "down"; tint: Theme.muted
+                kind: "down"; tint: Pal.Palette.muted
                 rotation: -90
             }
         }

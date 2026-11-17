@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import QtQuick.Controls
 import "../components"
 import "../../common/Theme.js" as Theme
+import "../../common" as Pal
 
 // Notification settings. Popup options are saved to config.json; do-not-disturb is runtime state
 // and resets when the shell restarts.
@@ -11,6 +12,7 @@ Flickable {
     property var themeStore
     property var notifications          // NotificationService
     property string pageId: ""
+    ScrollBar.vertical: PageScrollBar { accent: page.themeStore.accentColor }
     property string keywords: "notifications notification popup toast timeout position history do not disturb dnd clear"
     readonly property var resetPaths: ["notifications.enabled", "notifications.timeout_ms", "notifications.position", "notifications.max_visible"]
     readonly property color accent: themeStore.accentColor
@@ -85,22 +87,22 @@ Flickable {
                     width: parent ? parent.width : 300
                     implicitHeight: entryCol.implicitHeight + 16
                     radius: Theme.radiusRow
-                    color: Theme.controlFill
-                    border.color: Theme.surfaceEdge
+                    color: Pal.Palette.controlFill
+                    border.color: Pal.Palette.surfaceEdge
                     ColumnLayout {
                         id: entryCol
                         anchors { left: parent.left; right: parent.right; top: parent.top; margins: 10 }
                         spacing: 2
                         RowLayout {
                             Layout.fillWidth: true
-                            Text { Layout.fillWidth: true; text: modelData.app; color: Theme.muted; font.pixelSize: Theme.fontCaption; font.weight: Font.DemiBold; elide: Text.ElideRight }
+                            Text { Layout.fillWidth: true; text: modelData.app; color: Pal.Palette.muted; font.pixelSize: Theme.fontCaption; font.weight: Font.DemiBold; elide: Text.ElideRight }
                             Text {
                                 text: modelData.time + "  ·  " + (modelData.status === "suppressed" ? "not shown (" + modelData.reason + ")" : "shown")
-                                color: Theme.muted; font.pixelSize: Theme.fontCaption
+                                color: Pal.Palette.muted; font.pixelSize: Theme.fontCaption
                             }
                         }
-                        Text { Layout.fillWidth: true; text: modelData.summary; color: Theme.textPrimary; font.pixelSize: Theme.fontSmall; font.weight: Font.DemiBold; elide: Text.ElideRight; textFormat: Text.PlainText }
-                        Text { visible: text !== ""; Layout.fillWidth: true; text: modelData.body; color: Theme.textSecondary; font.pixelSize: Theme.fontCaption; wrapMode: Text.Wrap; maximumLineCount: 2; elide: Text.ElideRight; textFormat: Text.PlainText }
+                        Text { Layout.fillWidth: true; text: modelData.summary; color: Pal.Palette.textPrimary; font.pixelSize: Theme.fontSmall; font.weight: Font.DemiBold; elide: Text.ElideRight; textFormat: Text.PlainText }
+                        Text { visible: text !== ""; Layout.fillWidth: true; text: modelData.body; color: Pal.Palette.textSecondary; font.pixelSize: Theme.fontCaption; wrapMode: Text.Wrap; maximumLineCount: 2; elide: Text.ElideRight; textFormat: Text.PlainText }
                     }
                 }
             }

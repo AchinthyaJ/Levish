@@ -9,6 +9,7 @@ import "../common" as C
 import "../common/Theme.js" as Theme
 import "components"
 import "pages"
+import "../common" as Pal
 
 FloatingWindow {
     id: win
@@ -28,7 +29,7 @@ FloatingWindow {
     implicitWidth: 980
     implicitHeight: 660
     minimumSize: Qt.size(640, 520)
-    color: Theme.windowBg
+    color: Pal.Palette.window
 
     // Below this width the sidebar collapses to an icon rail, so pages keep room for their controls.
     readonly property bool compact: width < 820
@@ -39,7 +40,8 @@ FloatingWindow {
     onVisibleChanged: if (!visible && win.open) win.closeRequested()
 
     readonly property color accent: themeStore.accentColor
-    property string currentId: "overview"
+    // Opens on the page used last time. Follows the saved value once the config has loaded.
+    property string currentId: themeStore.settingsLastPage
     property string query: ""
 
     readonly property var pageList: [
@@ -134,10 +136,10 @@ FloatingWindow {
         if (entry.isSetting) {
             pendingRow = entry.ref
             pendingPage = entry.id
-            currentId = entry.id
+            rememberPage(entry.id)
             Qt.callLater(win.scrollToPending)
         } else {
-            currentId = entry.id
+            rememberPage(entry.id)
         }
     }
 
@@ -151,11 +153,17 @@ FloatingWindow {
         pendingRow = null
     }
 
-    function go(id) { currentId = id; query = "" }
+    function go(id) { rememberPage(id); query = "" }
+
+    // Shows a page and saves it as the one to open next time (no write when it is unchanged).
+    function rememberPage(id) {
+        currentId = id
+        if (themeStore.settingsLastPage !== id) themeStore.set("settings.last_page", id)
+    }
 
     Rectangle {
         anchors.fill: parent
-        color: Theme.windowBg
+        color: Pal.Palette.window
         focus: win.open
         Keys.onEscapePressed: win.closeRequested()
         Keys.onUpPressed: win.moveNav(-1)
@@ -171,9 +179,9 @@ FloatingWindow {
             Rectangle {
                 Layout.preferredWidth: win.sidebarWidth
                 Layout.fillHeight: true
-                color: Theme.sidebarBg
+                color: Pal.Palette.sidebar
 
-                Rectangle { anchors { right: parent.right; top: parent.top; bottom: parent.bottom } width: 1; color: Theme.surfaceEdge }
+                Rectangle { anchors { right: parent.right; top: parent.top; bottom: parent.bottom } width: 1; color: Pal.Palette.surfaceEdge }
 
                 ColumnLayout {
                     anchors { fill: parent; margins: win.compact ? 10 : 16 }
@@ -185,15 +193,15 @@ FloatingWindow {
                         spacing: 10
                         Rectangle {
                             width: 34; height: 34; radius: 11
-                            color: Theme.iconTile
+                            color: Pal.Palette.iconTile
                             border.color: win.accent; border.width: 1
                             C.Icon { anchors.centerIn: parent; width: 18; height: 18; kind: "gear"; tint: win.accent }
                         }
                         ColumnLayout {
                             spacing: 0
                             visible: !win.compact
-                            Text { text: "Settings"; color: Theme.text; font.pixelSize: 15; font.weight: Font.Bold }
-                            Text { text: "Levish"; color: Theme.muted; font.pixelSize: 10 }
+                            Text { text: "Settings"; color: Pal.Palette.text; font.pixelSize: Theme.fs(15); font.weight: Font.Bold }
+                            Text { text: "Levish"; color: Pal.Palette.muted; font.pixelSize: Theme.fs(10) }
                         }
                     }
 
@@ -202,15 +210,15 @@ FloatingWindow {
                         Layout.fillWidth: true
                         visible: !win.compact
                         height: 32; radius: 9
-                        color: Theme.controlFill
-                        border.color: search.activeFocus ? win.accent : Theme.controlEdge
+                        color: Pal.Palette.controlFill
+                        border.color: search.activeFocus ? win.accent : Pal.Palette.controlEdge
                         TextField {
                             id: search
                             anchors { fill: parent; leftMargin: 10; rightMargin: 10 }
                             placeholderText: "Search settings"
-                            placeholderTextColor: Theme.muted
-                            color: Theme.text
-                            font.pixelSize: 12
+                            placeholderTextColor: Pal.Palette.muted
+                            color: Pal.Palette.text
+                            font.pixelSize: Theme.fs(12)
                             background: Item {}
                             text: win.query
                             onTextChanged: win.query = text
@@ -222,61 +230,88 @@ FloatingWindow {
                         }
                     }
 
-                    Repeater {
-                        model: win.navItems
-                        delegate: Rectangle {
-                            required property var modelData
-                            required property int index
-                            Layout.fillWidth: true
-                            implicitHeight: 36; radius: 9
-                            readonly property bool selected: win.query.trim() === "" && win.currentId === modelData.id
-                            // Keyboard focus ring: the entry Up/Down has reached.
-                            readonly property bool keyFocus: index === win.navIndex
-                            color: selected ? Qt.rgba(win.accent.r, win.accent.g, win.accent.b, 0.16)
-                                 : (keyFocus || navMa.containsMouse ? Theme.controlFill : "transparent")
-                            border.width: keyFocus && !selected ? 1 : 0
-                            border.color: win.accent
-                            Rectangle {
-                                visible: parent.selected
-                                width: 3; height: 18; radius: 2
-                                color: win.accent
-                                anchors { left: parent.left; verticalCenter: parent.verticalCenter }
-                            }
-                            RowLayout {
-                                anchors { fill: parent; leftMargin: 12; rightMargin: 10 }
-                                spacing: 10
-                                C.Icon { width: 16; height: 16; kind: modelData.icon; tint: selected ? win.accent : Theme.muted }
-                                Text {
-                                    Layout.fillWidth: true
-                                    visible: !win.compact
-                                    text: modelData.isSetting ? modelData.title + "  ·  " + modelData.page : modelData.title
-                                    color: selected ? Theme.text : Theme.muted
-                                    font.pixelSize: 13
-                                    font.weight: selected ? Font.DemiBold : Font.Normal
-                                    elide: Text.ElideRight
-                                }
-                            }
-                            MouseArea {
-                                id: navMa
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: win.openEntry(modelData)
-                                ToolTip.visible: containsMouse && win.compact
-                                ToolTip.text: modelData.title
-                                ToolTip.delay: 400
+                    Flickable {
+                        id: navFlick
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        clip: true
+                        boundsBehavior: Flickable.StopAtBounds
+                        contentWidth: width
+                        contentHeight: navCol.implicitHeight
+                        ScrollBar.vertical: PageScrollBar { accent: win.accent }
+
+                        // Keeps the Up/Down keyboard focus in view while the list scrolls.
+                        // Entries are 36 px tall with 6 px between them.
+                        Connections {
+                            target: win
+                            function onNavIndexChanged() {
+                                const top = win.navIndex * 42
+                                const bottom = top + 36
+                                if (top < navFlick.contentY) navFlick.contentY = top
+                                else if (bottom > navFlick.contentY + navFlick.height) navFlick.contentY = bottom - navFlick.height
                             }
                         }
-                    }
 
-                    Item { Layout.fillHeight: true }
+                        ColumnLayout {
+                            id: navCol
+                            width: navFlick.width
+                            spacing: 6
+
+                        Repeater {
+                            model: win.navItems
+                            delegate: Rectangle {
+                                required property var modelData
+                                required property int index
+                                Layout.fillWidth: true
+                                implicitHeight: 36; radius: 9
+                                readonly property bool selected: win.query.trim() === "" && win.currentId === modelData.id
+                                // Keyboard focus ring: the entry Up/Down has reached.
+                                readonly property bool keyFocus: index === win.navIndex
+                                color: selected ? Qt.rgba(win.accent.r, win.accent.g, win.accent.b, 0.16)
+                                     : (keyFocus || navMa.containsMouse ? Pal.Palette.controlFill : "transparent")
+                                border.width: keyFocus && !selected ? 1 : 0
+                                border.color: win.accent
+                                Rectangle {
+                                    visible: parent.selected
+                                    width: 3; height: 18; radius: 2
+                                    color: win.accent
+                                    anchors { left: parent.left; verticalCenter: parent.verticalCenter }
+                                }
+                                RowLayout {
+                                    anchors { fill: parent; leftMargin: 12; rightMargin: 10 }
+                                    spacing: 10
+                                    C.Icon { width: 16; height: 16; kind: modelData.icon; tint: selected ? win.accent : Pal.Palette.muted }
+                                    Text {
+                                        Layout.fillWidth: true
+                                        visible: !win.compact
+                                        text: modelData.isSetting ? modelData.title + "  ·  " + modelData.page : modelData.title
+                                        color: selected ? Pal.Palette.text : Pal.Palette.muted
+                                        font.pixelSize: Theme.fs(13)
+                                        font.weight: selected ? Font.DemiBold : Font.Normal
+                                        elide: Text.ElideRight
+                                    }
+                                }
+                                MouseArea {
+                                    id: navMa
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: win.openEntry(modelData)
+                                    ToolTip.visible: containsMouse && win.compact
+                                    ToolTip.text: modelData.title
+                                    ToolTip.delay: 400
+                                }
+                            }
+                        }
+                        }
+                    }
 
                     Text {
                         Layout.fillWidth: true
                         text: win.themeStore.status === "ok" ? "Saved to config/config.json"
                             : (win.themeStore.status === "missing" ? "No config file yet" : "Config needs attention")
-                        color: win.themeStore.status === "ok" ? Theme.muted : Theme.danger
-                        font.pixelSize: 10
+                        color: win.themeStore.status === "ok" ? Pal.Palette.muted : Pal.Palette.danger
+                        font.pixelSize: Theme.fs(10)
                         wrapMode: Text.Wrap
                     }
                 }
@@ -295,9 +330,12 @@ FloatingWindow {
                     Layout.rightMargin: 16
                     Text {
                         Layout.fillWidth: true
-                        text: win.pageList.filter(p => p.id === win.currentId)[0].title
-                        color: Theme.text
-                        font.pixelSize: 18
+                        // Breadcrumb: the app name in muted text, then the page.
+                        textFormat: Text.RichText
+                        text: "<span style='color:" + Pal.Palette.muted + ";font-weight:normal'>Settings  ›  </span>"
+                              + win.pageList.filter(p => p.id === win.currentId)[0].title
+                        color: Pal.Palette.text
+                        font.pixelSize: Theme.fs(18)
                         font.weight: Font.DemiBold
                     }
                     SettingsButton {
@@ -307,7 +345,7 @@ FloatingWindow {
                     }
                 }
 
-                Rectangle { Layout.fillWidth: true; height: 1; color: Theme.surfaceEdge }
+                Rectangle { Layout.fillWidth: true; height: 1; color: Pal.Palette.surfaceEdge }
 
                 StackLayout {
                     id: pageStack

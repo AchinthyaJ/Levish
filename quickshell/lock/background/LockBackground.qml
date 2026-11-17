@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Effects
 import Quickshell
+import "../../common" as Pal
 
 Item {
     id: root
@@ -94,7 +95,7 @@ Item {
 
     // Dynamic ambient shimmer
     AmbientShimmer {
-        accent: root.themeStore ? root.themeStore.accentColor : "#c8f7ef"
+        accent: root.themeStore ? root.themeStore.accentColor : Pal.Palette.accent
         active: root.active && (root.themeStore ? root.themeStore.lockAmbientEffects : true)
         reducedMotion: root.themeStore ? root.themeStore.lockReducedMotion : false
     }

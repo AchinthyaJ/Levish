@@ -4,6 +4,7 @@ import QtQuick
 import QtQuick.Layouts
 import "../common" as C
 import "../common/Theme.js" as Theme
+import "../common" as Pal
 
 ColumnLayout {
     id: s
@@ -22,11 +23,11 @@ ColumnLayout {
     RowLayout {
         Layout.fillWidth: true
         spacing: 10
-        C.Icon { kind: s.kind; tint: s.muted ? Theme.muted : Theme.text; width: 16; height: 16 }
-        Text { text: s.label; color: Theme.text; font.pixelSize: 12; font.weight: Font.Medium; Layout.fillWidth: true }
+        C.Icon { kind: s.kind; tint: s.muted ? Pal.Palette.muted : Pal.Palette.text; width: 16; height: 16 }
+        Text { text: s.label; color: Pal.Palette.text; font.pixelSize: Theme.fs(12); font.weight: Font.Medium; Layout.fillWidth: true }
         Text {
             text: s.muted ? "Muted" : Math.round(s.value) + "%"
-            color: Theme.muted; font.pixelSize: 11; font.family: "JetBrains Mono"
+            color: Pal.Palette.muted; font.pixelSize: Theme.fs(11); font.family: "JetBrains Mono"
         }
     }
 
@@ -42,20 +43,20 @@ ColumnLayout {
             Rectangle {
                 width: parent.width * s.frac
                 height: parent.height; radius: 2
-                color: s.muted ? Theme.muted : Theme.accent
-                Behavior on width { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
+                color: s.muted ? Pal.Palette.muted : Pal.Palette.accent
+                Behavior on width { NumberAnimation { duration: Theme.dur(120); easing.type: Easing.OutCubic } }
             }
         }
         Rectangle {
             id: knob
             width: 12; height: 12; radius: 6
-            color: Theme.text
+            color: Pal.Palette.text
             anchors.verticalCenter: parent.verticalCenter
             x: Math.max(0, Math.min(track.width - width, track.width * s.frac - width / 2))
             opacity: ma.containsMouse || ma.pressed ? 1 : 0
             scale: ma.pressed ? 1.2 : 1
-            Behavior on opacity { NumberAnimation { duration: 150 } }
-            Behavior on scale { NumberAnimation { duration: 100 } }
+            Behavior on opacity { NumberAnimation { duration: Theme.dur(150) } }
+            Behavior on scale { NumberAnimation { duration: Theme.dur(100) } }
         }
         MouseArea {
             id: ma

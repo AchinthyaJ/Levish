@@ -3,15 +3,18 @@ import QtQuick.Layouts
 import QtQuick.Controls
 import "../components"
 import "../../common/Theme.js" as Theme
+import "../../common" as Pal
 
 Flickable {
     id: page
     property var themeStore
     property var lock                  // LockService
     property string pageId: ""
+    ScrollBar.vertical: PageScrollBar { accent: page.themeStore.accentColor }
     property string keywords: "lock screen locking idle timeout sleep suspend password hyprlock hypridle clock wallpaper weather layout blur pam"
 
     readonly property var resetPaths: [
+        "lock.custom_greeting", "lock.custom_wallpaper_path", "lock.custom_avatar", "lock.weather_location",
         "lock.timeout_min", "lock.before_sleep", "lock.layout",
         "lock.clock_format", "lock.show_seconds", "lock.clock_scale",
         "lock.use_desktop_wallpaper", "lock.blur", "lock.dimming", "lock.vignette",
@@ -21,7 +24,7 @@ Flickable {
         "lock.show_network", "lock.show_media", "lock.show_uptime",
         "lock.hide_sensitive_media", "lock.hide_user_details", "lock.disable_widgets"
     ]
-    readonly property color accent: themeStore ? themeStore.accentColor : "#c8f7ef"
+    readonly property color accent: themeStore ? themeStore.accentColor : Pal.Palette.accent
 
     contentHeight: col.implicitHeight + 60
     clip: true
@@ -352,7 +355,7 @@ Flickable {
             Text {
                 Layout.fillWidth: true
                 text: "Levish features a dual-architecture locking system: Native Wayland ext-session-lock-v1 protocol with PAM conversation, synchronized with a dedicated hyprlock configuration."
-                color: Theme.textSecondary
+                color: Pal.Palette.textSecondary
                 font.pixelSize: Theme.fontSmall
                 wrapMode: Text.Wrap
             }
@@ -360,9 +363,102 @@ Flickable {
             Text {
                 Layout.fillWidth: true
                 text: "State directory: " + (page.lock ? page.lock.stateDir : "")
-                color: Theme.muted
+                color: Pal.Palette.muted
                 font.pixelSize: Theme.fontCaption
                 wrapMode: Text.WrapAnywhere
+            }
+        }
+
+        SettingsCard {
+            title: "Custom text and images"
+            // Free text and file paths shown on the lock screen. Empty means the default.
+            SettingsRow {
+                label: "Greeting"
+                hint: "Replaces the default greeting. Leave empty for the time-based one."
+            }
+            Rectangle {
+                Layout.fillWidth: true
+                implicitHeight: 36
+                radius: 9
+                color: Pal.Palette.controlFill
+                border.color: greetingField.activeFocus ? page.accent : Pal.Palette.controlEdge
+                TextField {
+                    id: greetingField
+                    anchors { fill: parent; leftMargin: 10; rightMargin: 10 }
+                    text: page.themeStore.lockCustomGreeting
+                    placeholderText: "Good evening"
+                    placeholderTextColor: Pal.Palette.muted
+                    color: Pal.Palette.text
+                    font.pixelSize: Theme.fs(12)
+                    background: Item {}
+                    onEditingFinished: page.themeStore.set("greeting", text)
+                }
+            }
+            SettingsRow {
+                label: "Lock screen wallpaper"
+                hint: "Image path for the lock screen. Empty uses the desktop wallpaper."
+            }
+            Rectangle {
+                Layout.fillWidth: true
+                implicitHeight: 36
+                radius: 9
+                color: Pal.Palette.controlFill
+                border.color: wallpaperField.activeFocus ? page.accent : Pal.Palette.controlEdge
+                TextField {
+                    id: wallpaperField
+                    anchors { fill: parent; leftMargin: 10; rightMargin: 10 }
+                    text: page.themeStore.lockCustomWallpaperPath
+                    placeholderText: "/path/to/image.png"
+                    placeholderTextColor: Pal.Palette.muted
+                    color: Pal.Palette.text
+                    font.pixelSize: Theme.fs(12)
+                    background: Item {}
+                    onEditingFinished: page.themeStore.set("wallpaper", text)
+                }
+            }
+            SettingsRow {
+                label: "Avatar"
+                hint: "Image path for the profile picture on the lock screen."
+            }
+            Rectangle {
+                Layout.fillWidth: true
+                implicitHeight: 36
+                radius: 9
+                color: Pal.Palette.controlFill
+                border.color: avatarField.activeFocus ? page.accent : Pal.Palette.controlEdge
+                TextField {
+                    id: avatarField
+                    anchors { fill: parent; leftMargin: 10; rightMargin: 10 }
+                    text: page.themeStore.lockCustomAvatar
+                    placeholderText: "/path/to/avatar.png"
+                    placeholderTextColor: Pal.Palette.muted
+                    color: Pal.Palette.text
+                    font.pixelSize: Theme.fs(12)
+                    background: Item {}
+                    onEditingFinished: page.themeStore.set("avatar", text)
+                }
+            }
+            SettingsRow {
+                label: "Weather location"
+                hint: "City name for the lock screen weather widget."
+            }
+            Rectangle {
+                Layout.fillWidth: true
+                implicitHeight: 36
+                radius: 9
+                color: Pal.Palette.controlFill
+                border.color: weatherField.activeFocus ? page.accent : Pal.Palette.controlEdge
+                TextField {
+                    id: weatherField
+                    anchors { fill: parent; leftMargin: 10; rightMargin: 10 }
+                    text: page.themeStore.lockWeatherLocation
+                    placeholderText: "London"
+                    placeholderTextColor: Pal.Palette.muted
+                    color: Pal.Palette.text
+                    font.pixelSize: Theme.fs(12)
+                    background: Item {}
+                    onEditingFinished: page.themeStore.set("weather", text)
+                }
             }
         }
     }

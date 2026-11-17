@@ -15,6 +15,7 @@ import Quickshell.Wayland
 import Quickshell.Hyprland
 import "../common" as C
 import "../common/Theme.js" as Theme
+import "../common" as Pal
 
 PanelWindow {
     id: osd
@@ -119,8 +120,8 @@ PanelWindow {
     Rectangle {
         anchors.fill: parent
         radius: height / 2
-        color: Theme.glass
-        border.color: Theme.glassEdge
+        color: Pal.Palette.glass
+        border.color: Pal.Palette.glassEdge
         border.width: 1
 
         RowLayout {
@@ -140,7 +141,7 @@ PanelWindow {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 6
                 radius: 3
-                color: Theme.track
+                color: Pal.Palette.track
                 Rectangle {
                     width: parent.width * Math.max(0, Math.min(1, osd.level / 100))
                     height: parent.height
@@ -155,7 +156,7 @@ PanelWindow {
                 Layout.minimumWidth: 52
                 horizontalAlignment: Text.AlignRight
                 text: osd.label
-                color: Theme.text
+                color: Pal.Palette.text
                 font.pixelSize: Theme.fontBody
                 font.weight: Font.DemiBold
                 elide: Text.ElideRight

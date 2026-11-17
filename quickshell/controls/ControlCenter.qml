@@ -9,6 +9,7 @@ import Quickshell.Io
 import "../common" as C
 import "../common/Theme.js" as Theme
 import "../bar" as B
+import "../common" as Pal
 
 PanelWindow {
     id: ccPanel
@@ -140,23 +141,23 @@ PanelWindow {
         id: body
         anchors.fill: parent
         opacity: ccPanel.open ? 1 : 0
-        Behavior on opacity { NumberAnimation { duration: 240; easing.type: Easing.OutCubic } }
+        Behavior on opacity { NumberAnimation { duration: Theme.dur(240); easing.type: Easing.OutCubic } }
 
         transform: Scale {
             origin.x: ccPanel.flt + ccPanel.bodyW - ccPanel.anchorWidth / 2
             origin.y: 0
             xScale: ccPanel.open ? 1 : Math.max(0.2, ccPanel.anchorWidth / (ccPanel.bodyW + 2 * ccPanel.flt))
             yScale: ccPanel.open ? 1 : 0.3
-            Behavior on xScale { NumberAnimation { duration: 320; easing.type: Easing.OutCubic } }
-            Behavior on yScale { NumberAnimation { duration: 320; easing.type: Easing.OutCubic } }
+            Behavior on xScale { NumberAnimation { duration: Theme.dur(320); easing.type: Easing.OutCubic } }
+            Behavior on yScale { NumberAnimation { duration: Theme.dur(320); easing.type: Easing.OutCubic } }
         }
 
         C.DropShape {
             anchors.fill: parent
             fillet: ccPanel.flt
             radius: Theme.dropRadius
-            fillColor: Theme.glass
-            edgeColor: Theme.glassEdge
+            fillColor: Pal.Palette.glass
+            edgeColor: Pal.Palette.glassEdge
         }
 
         ColumnLayout {
@@ -171,15 +172,15 @@ PanelWindow {
                 spacing: 8
                 Text {
                     text: "Control Centre"
-                    color: Theme.text
-                    font.pixelSize: 15; font.weight: Font.DemiBold
+                    color: Pal.Palette.text
+                    font.pixelSize: Theme.fs(15); font.weight: Font.DemiBold
                     Layout.fillWidth: true
                 }
                 RowLayout {
                     spacing: 5
                     Text {
                         text: ccPanel.store.battery.percent + "%"
-                        color: Theme.muted; font.pixelSize: 11; font.family: "JetBrains Mono"
+                        color: Pal.Palette.muted; font.pixelSize: Theme.fs(11); font.family: "JetBrains Mono"
                     }
                     B.BatteryIcon {
                         Layout.preferredWidth: 28; Layout.preferredHeight: 18
@@ -191,8 +192,8 @@ PanelWindow {
                 Rectangle {
                     implicitWidth: 24; implicitHeight: 24; radius: 12
                     color: closeMA.containsMouse ? "#22ffffff" : "transparent"
-                    Behavior on color { ColorAnimation { duration: 140 } }
-                    C.Icon { anchors.centerIn: parent; width: 11; height: 11; kind: "close"; tint: Theme.muted }
+                    Behavior on color { ColorAnimation { duration: Theme.dur(140) } }
+                    C.Icon { anchors.centerIn: parent; width: 11; height: 11; kind: "close"; tint: Pal.Palette.muted }
                     MouseArea {
                         id: closeMA; anchors.fill: parent
                         hoverEnabled: true; cursorShape: Qt.PointingHandCursor
@@ -217,7 +218,7 @@ PanelWindow {
 
                     Rectangle {
                         Layout.preferredWidth: 46; Layout.preferredHeight: 46
-                        radius: 14; color: "#1ac8f7ef"; clip: true
+                        radius: 14; color: Qt.rgba(Pal.Palette.accent.r, Pal.Palette.accent.g, Pal.Palette.accent.b, 0.102); clip: true
                         Image {
                             id: artImg; anchors.fill: parent
                             source: ccPanel._media.art_url || ""
@@ -228,7 +229,7 @@ PanelWindow {
                         C.Icon {
                             anchors.centerIn: parent
                             width: 18; height: 18
-                            kind: "note"; tint: Theme.accent
+                            kind: "note"; tint: Pal.Palette.accent
                             visible: !artImg.visible
                         }
                     }
@@ -237,12 +238,12 @@ PanelWindow {
                         Layout.fillWidth: true; spacing: 1
                         Text {
                             text: ccPanel._media.title || ""
-                            color: Theme.text; font.pixelSize: 13; font.weight: Font.DemiBold
+                            color: Pal.Palette.text; font.pixelSize: Theme.fs(13); font.weight: Font.DemiBold
                             elide: Text.ElideRight; Layout.fillWidth: true
                         }
                         Text {
                             text: ccPanel._media.artist || ""
-                            color: Theme.muted; font.pixelSize: 10
+                            color: Pal.Palette.muted; font.pixelSize: Theme.fs(10)
                             elide: Text.ElideRight; Layout.fillWidth: true
                         }
                     }
@@ -259,12 +260,12 @@ PanelWindow {
                                 required property var modelData
                                 implicitWidth: 30; implicitHeight: 30; radius: 15
                                 color: btnMA.containsMouse ? "#18ffffff" : "transparent"
-                                Behavior on color { ColorAnimation { duration: 120 } }
+                                Behavior on color { ColorAnimation { duration: Theme.dur(120) } }
                                 C.Icon {
                                     anchors.centerIn: parent
                                     width: modelData.accent ? 15 : 12; height: modelData.accent ? 15 : 12
                                     kind: modelData.kind
-                                    tint: modelData.accent ? Theme.accent : Theme.text
+                                    tint: modelData.accent ? Pal.Palette.accent : Pal.Palette.text
                                 }
                                 MouseArea {
                                     id: btnMA; anchors.fill: parent; hoverEnabled: true
@@ -333,12 +334,12 @@ PanelWindow {
                         Layout.fillWidth: true
                         Text {
                             text: ccPanel.panelMode === "wifi" ? "Wi-Fi networks" : "Bluetooth devices"
-                            color: Theme.text; font.pixelSize: 12; font.weight: Font.DemiBold
+                            color: Pal.Palette.text; font.pixelSize: Theme.fs(12); font.weight: Font.DemiBold
                             Layout.fillWidth: true
                         }
                         Text {
                             text: "Scan"
-                            color: Theme.accent; font.pixelSize: 11
+                            color: Pal.Palette.accent; font.pixelSize: Theme.fs(11)
                             MouseArea {
                                 anchors.fill: parent; cursorShape: Qt.PointingHandCursor
                                 onClicked: ccPanel._cmd({ cmd: "action", action: ccPanel.panelMode === "wifi" ? "wifi_scan" : "bt_scan" })
@@ -370,23 +371,23 @@ PanelWindow {
                                         C.Icon {
                                             width: 16; height: 16
                                             kind: "wifi"
-                                            tint: modelData.in_use ? Theme.accent : Theme.muted
+                                            tint: modelData.in_use ? Pal.Palette.accent : Pal.Palette.muted
                                         }
                                         Text {
                                             text: modelData.ssid
-                                            color: modelData.in_use ? Theme.text : Theme.text
-                                            font.pixelSize: 12; font.weight: modelData.in_use ? Font.DemiBold : Font.Normal
+                                            color: modelData.in_use ? Pal.Palette.text : Pal.Palette.text
+                                            font.pixelSize: Theme.fs(12); font.weight: modelData.in_use ? Font.DemiBold : Font.Normal
                                             elide: Text.ElideRight; Layout.fillWidth: true
                                         }
                                         Text {
                                             text: modelData.in_use ? "Connected" : (modelData.secured ? "Secured · " : "") + modelData.signal + "%"
-                                            color: Theme.muted; font.pixelSize: 10
+                                            color: Pal.Palette.muted; font.pixelSize: Theme.fs(10)
                                         }
                                         Rectangle {
                                             visible: !modelData.in_use
                                             implicitWidth: connTxt.implicitWidth + 16; implicitHeight: 22; radius: 11
-                                            color: connMA.containsMouse ? "#24c8f7ef" : "#14ffffff"
-                                            Text { id: connTxt; anchors.centerIn: parent; text: "Connect"; color: Theme.text; font.pixelSize: 10 }
+                                            color: connMA.containsMouse ? Qt.rgba(Pal.Palette.accent.r, Pal.Palette.accent.g, Pal.Palette.accent.b, 0.141) : "#14ffffff"
+                                            Text { id: connTxt; anchors.centerIn: parent; text: "Connect"; color: Pal.Palette.text; font.pixelSize: Theme.fs(10) }
                                             MouseArea {
                                                 id: connMA; anchors.fill: parent; hoverEnabled: true
                                                 cursorShape: Qt.PointingHandCursor
@@ -410,7 +411,7 @@ PanelWindow {
                                                 id: pwField
                                                 anchors { fill: parent; leftMargin: 10; rightMargin: 10 }
                                                 verticalAlignment: TextInput.AlignVCenter
-                                                color: Theme.text; font.pixelSize: 12
+                                                color: Pal.Palette.text; font.pixelSize: Theme.fs(12)
                                                 echoMode: TextInput.Password
                                                 clip: true
                                                 focus: ccPanel.passwordFor === modelData.ssid
@@ -418,14 +419,14 @@ PanelWindow {
                                                 Text {
                                                     anchors.fill: parent; verticalAlignment: Text.AlignVCenter
                                                     visible: pwField.text.length === 0
-                                                    text: "Password (blank for saved)"; color: Theme.muted; font.pixelSize: 11
+                                                    text: "Password (blank for saved)"; color: Pal.Palette.muted; font.pixelSize: Theme.fs(11)
                                                 }
                                             }
                                         }
                                         Rectangle {
                                             implicitWidth: goTxt.implicitWidth + 16; implicitHeight: 28; radius: 10
-                                            color: goMA.containsMouse ? "#33c8f7ef" : "#1ec8f7ef"
-                                            Text { id: goTxt; anchors.centerIn: parent; text: "Join"; color: Theme.text; font.pixelSize: 11 }
+                                            color: goMA.containsMouse ? Qt.rgba(Pal.Palette.accent.r, Pal.Palette.accent.g, Pal.Palette.accent.b, 0.2) : Qt.rgba(Pal.Palette.accent.r, Pal.Palette.accent.g, Pal.Palette.accent.b, 0.118)
+                                            Text { id: goTxt; anchors.centerIn: parent; text: "Join"; color: Pal.Palette.text; font.pixelSize: Theme.fs(11) }
                                             MouseArea {
                                                 id: goMA; anchors.fill: parent; hoverEnabled: true
                                                 cursorShape: Qt.PointingHandCursor
@@ -438,7 +439,7 @@ PanelWindow {
                             Text {
                                 visible: ccPanel._wifi.networks.length === 0
                                 text: "No networks found. Press Scan."
-                                color: Theme.muted; font.pixelSize: 11
+                                color: Pal.Palette.muted; font.pixelSize: Theme.fs(11)
                             }
                         }
                     }
@@ -458,7 +459,7 @@ PanelWindow {
                             Text {
                                 visible: !ccPanel._bluetooth.enabled
                                 text: "Bluetooth is off. Turn it on from the tile."
-                                color: Theme.muted; font.pixelSize: 11
+                                color: Pal.Palette.muted; font.pixelSize: Theme.fs(11)
                             }
                             Repeater {
                                 model: ccPanel._bluetooth.enabled ? ccPanel._bluetooth.devices : []
@@ -469,28 +470,28 @@ PanelWindow {
                                     C.Icon {
                                         width: 16; height: 16
                                         kind: "bluetooth"
-                                        tint: modelData.connected ? Theme.accent : Theme.muted
+                                        tint: modelData.connected ? Pal.Palette.accent : Pal.Palette.muted
                                     }
                                     ColumnLayout {
                                         Layout.fillWidth: true
                                         spacing: 0
                                         Text {
                                             text: modelData.name
-                                            color: Theme.text; font.pixelSize: 12
+                                            color: Pal.Palette.text; font.pixelSize: Theme.fs(12)
                                             elide: Text.ElideRight; Layout.fillWidth: true
                                         }
                                         Text {
                                             text: modelData.connected ? "Connected" : (modelData.paired ? "Paired" : "Available")
-                                            color: Theme.muted; font.pixelSize: 10
+                                            color: Pal.Palette.muted; font.pixelSize: Theme.fs(10)
                                         }
                                     }
                                     Rectangle {
                                         implicitWidth: btTxt.implicitWidth + 16; implicitHeight: 22; radius: 11
-                                        color: btMA.containsMouse ? "#24c8f7ef" : "#14ffffff"
+                                        color: btMA.containsMouse ? Qt.rgba(Pal.Palette.accent.r, Pal.Palette.accent.g, Pal.Palette.accent.b, 0.141) : "#14ffffff"
                                         Text {
                                             id: btTxt; anchors.centerIn: parent
                                             text: modelData.connected ? "Disconnect" : (modelData.paired ? "Connect" : "Pair")
-                                            color: Theme.text; font.pixelSize: 10
+                                            color: Pal.Palette.text; font.pixelSize: Theme.fs(10)
                                         }
                                         MouseArea {
                                             id: btMA; anchors.fill: parent; hoverEnabled: true
@@ -521,15 +522,15 @@ PanelWindow {
                         readonly property bool active: ccPanel._profiles.active === modelData
                         Layout.fillWidth: true
                         implicitHeight: 34; radius: 17
-                        color: active ? "#24c8f7ef" : (pMA.containsMouse ? "#1affffff" : "#12ffffff")
+                        color: active ? Qt.rgba(Pal.Palette.accent.r, Pal.Palette.accent.g, Pal.Palette.accent.b, 0.141) : (pMA.containsMouse ? "#1affffff" : "#12ffffff")
                         border.width: 1
-                        border.color: active ? "#40c8f7ef" : "#14ffffff"
-                        Behavior on color { ColorAnimation { duration: 160 } }
+                        border.color: active ? Qt.rgba(Pal.Palette.accent.r, Pal.Palette.accent.g, Pal.Palette.accent.b, 0.251) : "#14ffffff"
+                        Behavior on color { ColorAnimation { duration: Theme.dur(160) } }
                         Text {
                             anchors.centerIn: parent
                             text: ccPanel.profileLabels[modelData] || modelData
-                            color: active ? Theme.accent : Theme.text
-                            font.pixelSize: 11; font.weight: active ? Font.DemiBold : Font.Normal
+                            color: active ? Pal.Palette.accent : Pal.Palette.text
+                            font.pixelSize: Theme.fs(11); font.weight: active ? Font.DemiBold : Font.Normal
                         }
                         MouseArea {
                             id: pMA; anchors.fill: parent; hoverEnabled: true
@@ -597,12 +598,12 @@ PanelWindow {
                                    ? (modelData.hot ? "#33e94560" : "#22ffffff")
                                    : "#12ffffff"
                             border.color: "#14ffffff"; border.width: 1
-                            Behavior on color { ColorAnimation { duration: 150 } }
+                            Behavior on color { ColorAnimation { duration: Theme.dur(150) } }
                             C.Icon {
                                 anchors.centerIn: parent
                                 width: 18; height: 18
                                 kind: modelData.kind
-                                tint: modelData.hot ? "#f0708a" : Theme.text
+                                tint: modelData.hot ? "#f0708a" : Pal.Palette.text
                             }
                             MouseArea {
                                 id: actMA; anchors.fill: parent; hoverEnabled: true
@@ -613,7 +614,7 @@ PanelWindow {
                         Text {
                             Layout.alignment: Qt.AlignHCenter
                             text: modelData.label
-                            color: Theme.muted; font.pixelSize: 9
+                            color: Pal.Palette.muted; font.pixelSize: Theme.fs(9)
                         }
                     }
                 }

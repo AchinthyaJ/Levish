@@ -133,7 +133,7 @@ WlSessionLockSurface {
             property: "scale"
             from: (root.themeStore && root.themeStore.lockReducedMotion) ? 1.0 : 0.96
             to: 1.0
-            duration: 360
+            duration: Theme.dur(360)
             easing.type: Easing.OutCubic
         }
     }
@@ -154,7 +154,7 @@ WlSessionLockSurface {
                 target: contentContainer
                 property: "scale"
                 to: (root.themeStore && root.themeStore.lockReducedMotion) ? 1.0 : 0.96
-                duration: 220
+                duration: Theme.dur(220)
                 easing.type: Easing.InCubic
             }
             NumberAnimation {

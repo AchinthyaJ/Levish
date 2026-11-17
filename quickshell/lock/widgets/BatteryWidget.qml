@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import "../../common" as C
 import "../../common/Theme.js" as Theme
+import "../../common" as Pal
 
 Rectangle {
     id: root
@@ -12,7 +13,7 @@ Rectangle {
 
     readonly property int pct: battery ? battery.percent : 100
     readonly property bool charging: battery ? battery.charging : false
-    readonly property color accent: themeStore ? themeStore.accentColor : "#c8f7ef"
+    readonly property color accent: themeStore ? themeStore.accentColor : Pal.Palette.accent
 
     readonly property color statusColor: {
         if (charging) return "#34d399"

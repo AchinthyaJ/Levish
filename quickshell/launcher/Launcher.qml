@@ -7,6 +7,7 @@ import Quickshell
 import Quickshell.Wayland
 import "../common" as C
 import "../common/Theme.js" as Theme
+import "../common" as Pal
 
 PanelWindow {
     id: win
@@ -17,6 +18,7 @@ PanelWindow {
     property var themeStore: null
     property string viewMode: themeStore ? themeStore.launcherDefaultView : "grid"    // "grid" or "list"
     property string activeCategory: "All"
+    readonly property int iconPx: themeStore ? themeStore.launcherIconSize : 42
     readonly property int gridColumns: themeStore ? themeStore.launcherColumns : 5
 
     visible: open
@@ -39,15 +41,22 @@ PanelWindow {
     readonly property var categories: ["All", "Pinned", "Development", "Internet", "Multimedia", "Utilities", "System", "Games"]
 
     // Visible apps, sorted by name, filtered by category and query
+    // Desktop IDs the user hid in Settings, normalised (no .desktop suffix, lower case).
+    readonly property var hiddenIds: themeStore
+        ? String(themeStore.launcherHidden).split(",").map(s => s.trim().replace(/\.desktop$/i, "").toLowerCase()).filter(s => s.length > 0)
+        : []
+
     readonly property var results: {
         dockState.appsRevision
         const q = search.text.trim().toLowerCase()
         const cat = activeCategory
         const apps = dockState.listOf(DesktopEntries.applications)
         const out = []
+        const hidden = win.hiddenIds
 
         for (const a of apps) {
             if (a.noDisplay) continue
+            if (hidden.indexOf(String(a.id).toLowerCase()) >= 0) continue
 
             // Category filter
             if (cat === "Pinned") {
@@ -74,7 +83,11 @@ PanelWindow {
             out.push(a)
         }
 
-        out.sort((x, y) => x.name.localeCompare(y.name))
+        if (win.themeStore && win.themeStore.launcherSort === "pinned_first") {
+            out.sort((x, y) => (dockState.isPinned(x) ? 0 : 1) - (dockState.isPinned(y) ? 0 : 1) || x.name.localeCompare(y.name))
+        } else {
+            out.sort((x, y) => x.name.localeCompare(y.name))
+        }
         return out.slice(0, 300)
     }
 
@@ -96,8 +109,8 @@ PanelWindow {
         height: Math.min(620, Math.round(win.height * 0.62))
         anchors.centerIn: parent
         radius: 24
-        color: Theme.glass
-        border.color: Theme.glassEdge
+        color: Pal.Palette.glass
+        border.color: Pal.Palette.glassEdge
         border.width: 1
 
         opacity: 0
@@ -107,7 +120,7 @@ PanelWindow {
             target: panel
             properties: "opacity,scale"
             from: 0; to: 1
-            duration: 200
+            duration: Theme.dur(200)
             easing.type: Easing.OutCubic
         }
 
@@ -129,8 +142,8 @@ PanelWindow {
 
                 Text {
                     text: "APPLICATIONS"
-                    color: Theme.accent
-                    font.pixelSize: 11
+                    color: Pal.Palette.accent
+                    font.pixelSize: Theme.fs(11)
                     font.letterSpacing: 2
                     font.weight: Font.Bold
                 }
@@ -157,7 +170,7 @@ PanelWindow {
                                 anchors.centerIn: parent
                                 width: 12; height: 12
                                 kind: "grid"
-                                tint: win.viewMode === "grid" ? Theme.accent : Theme.muted
+                                tint: win.viewMode === "grid" ? Pal.Palette.accent : Pal.Palette.muted
                             }
                             MouseArea {
                                 anchors.fill: parent
@@ -174,7 +187,7 @@ PanelWindow {
                                 anchors.centerIn: parent
                                 width: 12; height: 12
                                 kind: "list"
-                                tint: win.viewMode === "list" ? Theme.accent : Theme.muted
+                                tint: win.viewMode === "list" ? Pal.Palette.accent : Pal.Palette.muted
                             }
                             MouseArea {
                                 anchors.fill: parent
@@ -192,9 +205,9 @@ PanelWindow {
                 implicitHeight: 42
                 radius: 12
                 color: "#18ffffff"
-                border.color: search.activeFocus ? Theme.accent : "#22ffffff"
+                border.color: search.activeFocus ? Pal.Palette.accent : "#22ffffff"
                 border.width: 1
-                Behavior on border.color { ColorAnimation { duration: 150 } }
+                Behavior on border.color { ColorAnimation { duration: Theme.dur(150) } }
 
                 RowLayout {
                     anchors.fill: parent
@@ -205,15 +218,15 @@ PanelWindow {
                     C.Icon {
                         width: 16; height: 16
                         kind: "search"
-                        tint: search.activeFocus ? Theme.accent : Theme.muted
+                        tint: search.activeFocus ? Pal.Palette.accent : Pal.Palette.muted
                     }
 
                     TextInput {
                         id: search
                         Layout.fillWidth: true
                         verticalAlignment: TextInput.AlignVCenter
-                        color: Theme.text
-                        font.pixelSize: 15
+                        color: Pal.Palette.text
+                        font.pixelSize: Theme.fs(15)
                         font.weight: Font.Normal
                         clip: true
                         selectByMouse: true
@@ -225,7 +238,7 @@ PanelWindow {
                             visible: search.text.length === 0
                             text: "Type to search applications…"
                             color: "#55ffffff"
-                            font.pixelSize: 15
+                            font.pixelSize: Theme.fs(15)
                         }
 
                         Keys.onEscapePressed: win.closeRequested()
@@ -265,7 +278,7 @@ PanelWindow {
                             anchors.centerIn: parent
                             width: 10; height: 10
                             kind: "close"
-                            tint: Theme.muted
+                            tint: Pal.Palette.muted
                         }
                         MouseArea {
                             id: clearMA
@@ -291,17 +304,17 @@ PanelWindow {
                         implicitHeight: 24
                         radius: 12
                         readonly property bool isActive: win.activeCategory === modelData
-                        color: isActive ? Theme.accent : (catMA.containsMouse ? "#22ffffff" : "#12ffffff")
-                        border.color: isActive ? Theme.accent : "#18ffffff"
+                        color: isActive ? Pal.Palette.accent : (catMA.containsMouse ? "#22ffffff" : "#12ffffff")
+                        border.color: isActive ? Pal.Palette.accent : "#18ffffff"
                         border.width: 1
-                        Behavior on color { ColorAnimation { duration: 140 } }
+                        Behavior on color { ColorAnimation { duration: Theme.dur(140) } }
 
                         Text {
                             id: catText
                             anchors.centerIn: parent
                             text: modelData
-                            color: isActive ? "#111827" : Theme.text
-                            font.pixelSize: 11
+                            color: isActive ? "#111827" : Pal.Palette.text
+                            font.pixelSize: Theme.fs(11)
                             font.weight: isActive ? Font.DemiBold : Font.Normal
                         }
 
@@ -360,27 +373,27 @@ PanelWindow {
                             color: selected ? "#1fffffff" : "transparent"
                             border.color: selected ? "#33ffffff" : "transparent"
                             border.width: 1
-                            Behavior on color { ColorAnimation { duration: 140 } }
+                            Behavior on color { ColorAnimation { duration: Theme.dur(140) } }
 
                             Image {
                                 id: gridIco
                                 anchors.horizontalCenter: parent.horizontalCenter
                                 y: 10
-                                width: 42; height: 42
+                                width: win.iconPx; height: win.iconPx
                                 source: Quickshell.iconPath(modelData.icon, "application-x-executable")
                                 fillMode: Image.PreserveAspectFit
                                 asynchronous: true
                                 smooth: true
                                 mipmap: true
                                 scale: selected ? 1.08 : 1
-                                Behavior on scale { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
+                                Behavior on scale { NumberAnimation { duration: Theme.dur(160); easing.type: Easing.OutCubic } }
                             }
 
                             Text {
                                 anchors { left: parent.left; right: parent.right; top: gridIco.bottom; topMargin: 6; leftMargin: 6; rightMargin: 6 }
                                 text: modelData.name
-                                color: selected ? "#ffffff" : Theme.text
-                                font.pixelSize: 11
+                                color: selected ? "#ffffff" : Pal.Palette.text
+                                font.pixelSize: Theme.fs(11)
                                 horizontalAlignment: Text.AlignHCenter
                                 elide: Text.ElideRight
                                 maximumLineCount: 1
@@ -391,7 +404,7 @@ PanelWindow {
                                 visible: win.dockState.isPinned(modelData)
                                 anchors { horizontalCenter: parent.horizontalCenter; bottom: parent.bottom; bottomMargin: 5 }
                                 width: 4; height: 4; radius: 2
-                                color: Theme.accent
+                                color: Pal.Palette.accent
                             }
                         }
 
@@ -432,7 +445,7 @@ PanelWindow {
                         color: selected ? "#1fffffff" : "transparent"
                         border.color: selected ? "#33ffffff" : "transparent"
                         border.width: 1
-                        Behavior on color { ColorAnimation { duration: 140 } }
+                        Behavior on color { ColorAnimation { duration: Theme.dur(140) } }
 
                         RowLayout {
                             anchors.fill: parent
@@ -451,16 +464,16 @@ PanelWindow {
 
                             Text {
                                 text: modelData.name
-                                color: selected ? "#ffffff" : Theme.text
-                                font.pixelSize: 13
+                                color: selected ? "#ffffff" : Pal.Palette.text
+                                font.pixelSize: Theme.fs(13)
                                 font.weight: Font.Medium
                             }
 
                             Text {
                                 visible: (modelData.genericName || "").length > 0
                                 text: "— " + (modelData.genericName || "")
-                                color: Theme.muted
-                                font.pixelSize: 11
+                                color: Pal.Palette.muted
+                                font.pixelSize: Theme.fs(11)
                                 elide: Text.ElideRight
                                 Layout.fillWidth: true
                             }
@@ -476,8 +489,8 @@ PanelWindow {
                                 Text {
                                     anchors.centerIn: parent
                                     text: "PINNED"
-                                    color: Theme.accent
-                                    font.pixelSize: 8
+                                    color: Pal.Palette.accent
+                                    font.pixelSize: Theme.fs(8)
                                     font.weight: Font.Bold
                                 }
                             }
@@ -503,14 +516,14 @@ PanelWindow {
                 Layout.fillWidth: true
                 Text {
                     text: win.results.length + " applications found"
-                    color: Theme.muted
-                    font.pixelSize: 10
+                    color: Pal.Palette.muted
+                    font.pixelSize: Theme.fs(10)
                 }
                 Item { Layout.fillWidth: true }
                 Text {
                     text: "Enter: Launch  ·  Right-Click: Pin/Unpin  ·  Esc: Close"
                     color: "#55ffffff"
-                    font.pixelSize: 10
+                    font.pixelSize: Theme.fs(10)
                 }
             }
         }

@@ -7,6 +7,7 @@ import "../components"
 import "../../common" as C
 import "../../common/Theme.js" as Theme
 import "../../wallpaper/WallpaperPaths.js" as Paths
+import "../../common" as Pal
 
 // Wallpaper manager: Pick and manage desktop wallpapers for Hyprland and Levish.
 // Features multi-source discovery, live preview banner, instant fit modes,
@@ -15,9 +16,22 @@ Flickable {
     id: page
     property var themeStore
     property string pageId: "wallpaper"
+    ScrollBar.vertical: PageScrollBar { accent: page.accent }
     property string keywords: "wallpaper background image picture desktop hyprpaper rotate slideshow"
-    readonly property var resetPaths: ["wallpaper.path", "wallpaper.folder", "wallpaper.fit", "wallpaper.auto_rotate", "wallpaper.interval"]
-    readonly property color accent: themeStore ? themeStore.accentColor : Theme.accent
+    // Per-monitor overrides, stored as "NAME=/path;NAME=/path" in wallpaper.monitors.
+    function overrideFor(name) {
+        const list = Paths.parseMonitors(page.themeStore.wallpaperMonitors)
+        for (const e of list) if (e.monitor === name) return e.path
+        return ""
+    }
+    function setOverride(name, value) {
+        const kept = Paths.parseMonitors(page.themeStore.wallpaperMonitors).filter(e => e.monitor !== name)
+        const v = String(value || "").trim()
+        if (v.length) kept.push({ monitor: name, path: v })
+        page.themeStore.set("wallpaper.monitors", kept.map(e => e.monitor + "=" + e.path).join(";"))
+    }
+    readonly property var resetPaths: ["wallpaper.path", "wallpaper.folder", "wallpaper.fit", "wallpaper.auto_rotate", "wallpaper.interval", "wallpaper.monitors"]
+    readonly property color accent: themeStore ? themeStore.accentColor : Pal.Palette.accent
 
     readonly property string activePath: (themeStore && themeStore.wallpaperPath && themeStore.wallpaperPath !== "")
                                         ? themeStore.wallpaperPath
@@ -109,7 +123,7 @@ Flickable {
             Layout.fillWidth: true
             implicitHeight: 130
             radius: 14
-            color: Theme.surface
+            color: Pal.Palette.surface
             border.color: Qt.rgba(page.accent.r, page.accent.g, page.accent.b, 0.3)
             border.width: 1
 
@@ -122,8 +136,8 @@ Flickable {
                     Layout.preferredWidth: 168
                     Layout.fillHeight: true
                     radius: 10
-                    color: Theme.sidebarBg
-                    border.color: Theme.surfaceEdge
+                    color: Pal.Palette.sidebar
+                    border.color: Pal.Palette.surfaceEdge
                     border.width: 1
                     clip: true
 
@@ -142,7 +156,7 @@ Flickable {
                         height: 18
                         width: badgeText.implicitWidth + 12
                         radius: 5
-                        color: Theme.windowBg
+                        color: Pal.Palette.window
                         border.color: page.accent
                         border.width: 1
 
@@ -151,7 +165,7 @@ Flickable {
                             anchors.centerIn: parent
                             text: page.activeFit.toUpperCase()
                             color: page.accent
-                            font.pixelSize: 9
+                            font.pixelSize: Theme.fs(9)
                             font.weight: Font.Bold
                         }
                     }
@@ -169,18 +183,18 @@ Flickable {
                         Text {
                             text: "ACTIVE WALLPAPER"
                             color: page.accent
-                            font.pixelSize: 11
+                            font.pixelSize: Theme.fs(11)
                             font.weight: Font.Bold
                             font.letterSpacing: 0.5
                         }
                         Rectangle {
                             width: 6; height: 6; radius: 3
-                            color: Theme.ok
+                            color: Pal.Palette.ok
                         }
                         Text {
                             text: "Live on Hyprland"
-                            color: Theme.muted
-                            font.pixelSize: 11
+                            color: Pal.Palette.muted
+                            font.pixelSize: Theme.fs(11)
                         }
                         Item { Layout.fillWidth: true }
                     }
@@ -188,8 +202,8 @@ Flickable {
                     Text {
                         Layout.fillWidth: true
                         text: page.activePath.split("/").pop()
-                        color: Theme.textPrimary
-                        font.pixelSize: 16
+                        color: Pal.Palette.textPrimary
+                        font.pixelSize: Theme.fs(16)
                         font.weight: Font.DemiBold
                         elide: Text.ElideRight
                     }
@@ -197,8 +211,8 @@ Flickable {
                     Text {
                         Layout.fillWidth: true
                         text: page.activePath
-                        color: Theme.muted
-                        font.pixelSize: 11
+                        color: Pal.Palette.muted
+                        font.pixelSize: Theme.fs(11)
                         elide: Text.ElideMiddle
                     }
 
@@ -231,7 +245,7 @@ Flickable {
                                 Text {
                                     text: "Randomize"
                                     color: page.accent
-                                    font.pixelSize: 11
+                                    font.pixelSize: Theme.fs(11)
                                     font.weight: Font.DemiBold
                                     anchors.verticalCenter: parent.verticalCenter
                                 }
@@ -250,8 +264,8 @@ Flickable {
                             height: 28
                             implicitWidth: refRow.implicitWidth + 18
                             radius: 7
-                            color: refMa.containsMouse ? Theme.surfaceHover : Theme.controlFill
-                            border.color: Theme.controlEdge
+                            color: refMa.containsMouse ? Pal.Palette.surfaceHover : Pal.Palette.controlFill
+                            border.color: Pal.Palette.controlEdge
                             border.width: 1
 
                             Row {
@@ -261,13 +275,13 @@ Flickable {
                                 C.Icon {
                                     kind: "refresh"
                                     width: 13; height: 13
-                                    tint: Theme.textPrimary
+                                    tint: Pal.Palette.textPrimary
                                     anchors.verticalCenter: parent.verticalCenter
                                 }
                                 Text {
                                     text: "Rescan"
-                                    color: Theme.textPrimary
-                                    font.pixelSize: 11
+                                    color: Pal.Palette.textPrimary
+                                    font.pixelSize: Theme.fs(11)
                                     font.weight: Font.Medium
                                     anchors.verticalCenter: parent.verticalCenter
                                 }
@@ -294,6 +308,47 @@ Flickable {
         // =====================================================================
         // DISPLAY FIT MODE & SLIDESHOW OPTIONS
         // =====================================================================
+        SettingsCard {
+            title: "Per-monitor wallpapers"
+            SettingsRow {
+                label: "Screens"
+                hint: "Give a screen its own image. Leave a field empty to use the general wallpaper."
+            }
+            Repeater {
+                model: Quickshell.screens
+                delegate: Rectangle {
+                    required property var modelData
+                    Layout.fillWidth: true
+                    implicitHeight: 40
+                    radius: 9
+                    color: Pal.Palette.controlFill
+                    border.color: monField.activeFocus ? page.accent : Pal.Palette.controlEdge
+                    RowLayout {
+                        anchors { fill: parent; leftMargin: 12; rightMargin: 8 }
+                        spacing: 10
+                        Text {
+                            text: modelData.name
+                            color: Pal.Palette.textSecondary
+                            font.pixelSize: Theme.fs(12)
+                            font.weight: Font.DemiBold
+                            Layout.preferredWidth: 110
+                        }
+                        TextField {
+                            id: monField
+                            Layout.fillWidth: true
+                            text: page.overrideFor(modelData.name)
+                            placeholderText: "General wallpaper"
+                            placeholderTextColor: Pal.Palette.muted
+                            color: Pal.Palette.text
+                            font.pixelSize: Theme.fs(12)
+                            background: Item {}
+                            onEditingFinished: page.setOverride(modelData.name, text)
+                        }
+                    }
+                }
+            }
+        }
+
         SettingsCard {
             title: "Display & Slideshow"
 
@@ -369,13 +424,13 @@ Flickable {
                         width: Math.min(240, parent.width); height: 30
                         text: page.customFolder
                         placeholderText: Quickshell.env("HOME") + "/Pictures/Wallpapers"
-                        placeholderTextColor: Theme.muted
-                        font.pixelSize: 12
-                        color: Theme.textPrimary
+                        placeholderTextColor: Pal.Palette.muted
+                        font.pixelSize: Theme.fs(12)
+                        color: Pal.Palette.textPrimary
                         background: Rectangle {
                             radius: 8
-                            color: Theme.controlFill
-                            border.color: folderField.activeFocus ? page.accent : Theme.controlEdge
+                            color: Pal.Palette.controlFill
+                            border.color: folderField.activeFocus ? page.accent : Pal.Palette.controlEdge
                         }
                         onEditingFinished: {
                             if (page.themeStore) page.themeStore.set("wallpaper.folder", text.trim())
@@ -418,16 +473,16 @@ Flickable {
                             height: 26
                             width: chipText.implicitWidth + 18
                             radius: 6
-                            color: chipMa.containsMouse ? Theme.surfaceHover : Theme.controlFill
-                            border.color: page.customFolder === modelData.path ? page.accent : Theme.controlEdge
+                            color: chipMa.containsMouse ? Pal.Palette.surfaceHover : Pal.Palette.controlFill
+                            border.color: page.customFolder === modelData.path ? page.accent : Pal.Palette.controlEdge
                             border.width: 1
 
                             Text {
                                 id: chipText
                                 anchors.centerIn: parent
                                 text: modelData.label
-                                color: page.customFolder === modelData.path ? page.accent : Theme.text
-                                font.pixelSize: 11
+                                color: page.customFolder === modelData.path ? page.accent : Pal.Palette.text
+                                font.pixelSize: Theme.fs(11)
                             }
                             MouseArea {
                                 id: chipMa
@@ -474,16 +529,16 @@ Flickable {
                             height: 28
                             width: catLabel.implicitWidth + 20
                             radius: 8
-                            color: selected ? Qt.rgba(page.accent.r, page.accent.g, page.accent.b, 0.22) : (catMa.containsMouse ? Theme.surfaceHover : Theme.controlFill)
-                            border.color: selected ? page.accent : Theme.controlEdge
+                            color: selected ? Qt.rgba(page.accent.r, page.accent.g, page.accent.b, 0.22) : (catMa.containsMouse ? Pal.Palette.surfaceHover : Pal.Palette.controlFill)
+                            border.color: selected ? page.accent : Pal.Palette.controlEdge
                             border.width: 1
 
                             Text {
                                 id: catLabel
                                 anchors.centerIn: parent
                                 text: modelData.label
-                                color: selected ? Theme.text : Theme.muted
-                                font.pixelSize: 11
+                                color: selected ? Pal.Palette.text : Pal.Palette.muted
+                                font.pixelSize: Theme.fs(11)
                                 font.weight: selected ? Font.DemiBold : Font.Normal
                             }
                             MouseArea {
@@ -502,8 +557,8 @@ Flickable {
                 // Search Filter Box
                 Rectangle {
                     width: 200; height: 30; radius: 8
-                    color: Theme.controlFill
-                    border.color: searchField.activeFocus ? page.accent : Theme.controlEdge
+                    color: Pal.Palette.controlFill
+                    border.color: searchField.activeFocus ? page.accent : Pal.Palette.controlEdge
 
                     RowLayout {
                         anchors { fill: parent; leftMargin: 8; rightMargin: 8 }
@@ -511,15 +566,15 @@ Flickable {
                         C.Icon {
                             kind: "search"
                             width: 13; height: 13
-                            tint: searchField.text.length > 0 ? page.accent : Theme.muted
+                            tint: searchField.text.length > 0 ? page.accent : Pal.Palette.muted
                         }
                         TextField {
                             id: searchField
                             Layout.fillWidth: true
                             placeholderText: "Search..."
-                            placeholderTextColor: Theme.muted
-                            color: Theme.textPrimary
-                            font.pixelSize: 11
+                            placeholderTextColor: Pal.Palette.muted
+                            color: Pal.Palette.textPrimary
+                            font.pixelSize: Theme.fs(11)
                             background: Item {}
                             text: page.searchQuery
                             onTextChanged: page.searchQuery = text
@@ -528,7 +583,7 @@ Flickable {
                             visible: searchField.text.length > 0
                             kind: "close"
                             width: 12; height: 12
-                            tint: Theme.muted
+                            tint: Pal.Palette.muted
                             MouseArea {
                                 anchors.fill: parent
                                 cursorShape: Qt.PointingHandCursor
@@ -552,13 +607,13 @@ Flickable {
                         readonly property bool chosen: page.activePath === modelData
                         width: 182; height: 114
                         radius: 10
-                        color: Theme.surface
+                        color: Pal.Palette.surface
                         border.width: chosen ? 2 : 1
-                        border.color: chosen ? page.accent : (cardMa.containsMouse ? Theme.surfaceHover : Theme.controlEdge)
+                        border.color: chosen ? page.accent : (cardMa.containsMouse ? Pal.Palette.surfaceHover : Pal.Palette.controlEdge)
                         clip: true
 
-                        Behavior on border.color { ColorAnimation { duration: 150 } }
-                        Behavior on scale { NumberAnimation { duration: 120 } }
+                        Behavior on border.color { ColorAnimation { duration: Theme.dur(150) } }
+                        Behavior on scale { NumberAnimation { duration: Theme.dur(120) } }
                         scale: cardMa.containsMouse ? 1.02 : 1.0
 
                         // Wallpaper Image
@@ -579,7 +634,7 @@ Flickable {
                             height: 32
                             gradient: Gradient {
                                 GradientStop { position: 0.0; color: "transparent" }
-                                GradientStop { position: 1.0; color: Theme.windowBg }
+                                GradientStop { position: 1.0; color: Pal.Palette.window }
                             }
                         }
 
@@ -592,8 +647,8 @@ Flickable {
                                 margins: 6
                             }
                             text: modelData.split("/").pop()
-                            color: card.chosen ? page.accent : Theme.textPrimary
-                            font.pixelSize: 10
+                            color: card.chosen ? page.accent : Pal.Palette.textPrimary
+                            font.pixelSize: Theme.fs(10)
                             font.weight: card.chosen ? Font.DemiBold : Font.Normal
                             elide: Text.ElideMiddle
                         }
@@ -609,7 +664,7 @@ Flickable {
                                 anchors.centerIn: parent
                                 width: 12; height: 12
                                 kind: "check"
-                                tint: Theme.sidebarBg
+                                tint: Pal.Palette.sidebar
                             }
                         }
 
@@ -637,13 +692,13 @@ Flickable {
                         Layout.alignment: Qt.AlignHCenter
                         kind: "image"
                         width: 28; height: 28
-                        tint: Theme.muted
+                        tint: Pal.Palette.muted
                     }
                     Text {
                         Layout.alignment: Qt.AlignHCenter
                         text: "No wallpapers found matching this filter."
-                        color: Theme.muted
-                        font.pixelSize: 13
+                        color: Pal.Palette.muted
+                        font.pixelSize: Theme.fs(13)
                     }
                     SettingsButton {
                         Layout.alignment: Qt.AlignHCenter

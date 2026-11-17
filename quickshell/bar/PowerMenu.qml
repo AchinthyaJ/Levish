@@ -4,6 +4,7 @@ import Quickshell
 import Quickshell.Wayland
 import "../common" as C
 import "../common/Theme.js" as Theme
+import "../common" as Pal
 
 PanelWindow {
     id: powerWin
@@ -91,13 +92,13 @@ PanelWindow {
         id: body
         anchors.fill: parent
         radius: 16
-        color: Theme.glass
-        border.color: Theme.glassEdge
+        color: Pal.Palette.glass
+        border.color: Pal.Palette.glassEdge
         border.width: 1
         opacity: powerWin.open ? 1 : 0
         scale: powerWin.open ? 1 : 0.95
-        Behavior on opacity { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
-        Behavior on scale   { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
+        Behavior on opacity { NumberAnimation { duration: Theme.dur(180); easing.type: Easing.OutCubic } }
+        Behavior on scale   { NumberAnimation { duration: Theme.dur(180); easing.type: Easing.OutCubic } }
 
         ColumnLayout {
             id: col
@@ -119,7 +120,7 @@ PanelWindow {
                     color: isSelected ? (modelData.hot ? "#33e94560" : "#22ffffff") : "transparent"
                     border.color: isSelected ? (modelData.hot ? "#66e94560" : "#33ffffff") : "transparent"
                     border.width: 1
-                    Behavior on color { ColorAnimation { duration: 120 } }
+                    Behavior on color { ColorAnimation { duration: Theme.dur(120) } }
 
                     RowLayout {
                         anchors.fill: parent
@@ -137,8 +138,8 @@ PanelWindow {
                             Text {
                                 anchors.centerIn: parent
                                 text: modelData.key
-                                color: Theme.muted
-                                font.pixelSize: 10
+                                color: Pal.Palette.muted
+                                font.pixelSize: Theme.fs(10)
                                 font.family: "JetBrains Mono"
                                 font.weight: Font.Bold
                             }
@@ -148,15 +149,15 @@ PanelWindow {
                         C.Icon {
                             width: 16; height: 16
                             kind: modelData.icon
-                            tint: modelData.hot ? "#f0708a" : (rowItem.isSelected ? Theme.accent : Theme.text)
+                            tint: modelData.hot ? "#f0708a" : (rowItem.isSelected ? Pal.Palette.accent : Pal.Palette.text)
                         }
 
                         // Label
                         Text {
                             Layout.fillWidth: true
                             text: modelData.label
-                            color: rowItem.isSelected ? Theme.text : Theme.muted
-                            font.pixelSize: 12
+                            color: rowItem.isSelected ? Pal.Palette.text : Pal.Palette.muted
+                            font.pixelSize: Theme.fs(12)
                             font.weight: Font.Medium
                         }
                     }

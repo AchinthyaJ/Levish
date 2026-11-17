@@ -1,12 +1,13 @@
 // Segmented choice: one of a fixed list of options.
 import QtQuick
 import "../../common/Theme.js" as Theme
+import "../../common" as Pal
 
 Row {
     id: c
     property var options: []      // [{ value, label }]
     property var current
-    property color accent: Theme.accent
+    property color accent: Pal.Palette.accent
     signal picked(var value)
     spacing: 4
 
@@ -18,16 +19,16 @@ Row {
             height: 28
             width: Math.max(64, label.implicitWidth + 24)
             radius: 8
-            color: selected ? Qt.rgba(c.accent.r, c.accent.g, c.accent.b, 0.22) : (ma.containsMouse ? Theme.surfaceEdge : Theme.controlFill)
-            border.color: selected ? c.accent : Theme.controlEdge
+            color: selected ? Qt.rgba(c.accent.r, c.accent.g, c.accent.b, 0.22) : (ma.containsMouse ? Pal.Palette.surfaceEdge : Pal.Palette.controlFill)
+            border.color: selected ? c.accent : Pal.Palette.controlEdge
             border.width: 1
 
             Text {
                 id: label
                 anchors.centerIn: parent
                 text: modelData.label
-                color: selected ? Theme.text : Theme.muted
-                font.pixelSize: 12
+                color: selected ? Pal.Palette.text : Pal.Palette.muted
+                font.pixelSize: Theme.fs(12)
                 font.weight: selected ? Font.DemiBold : Font.Normal
             }
             MouseArea {

@@ -11,6 +11,8 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import "ConfigSchema.js" as Schema
+import "Theme.js" as Theme
 
 
 Item {
@@ -24,16 +26,33 @@ Item {
     // "loading" | "ok" | "missing" | "invalid"  (invalid = unreadable JSON, defaults in use)
 
     // Derived colors the shell components already consume.
-    readonly property color glassColor: Qt.rgba(22 / 255, 38 / 255, 46 / 255, glassOpacity)
+    readonly property color glassColor: Qt.rgba(barBase.r, barBase.g, barBase.b, glassOpacity)
     readonly property color glassEdge: "#33ffffff"
-    readonly property color dockGlass: Qt.rgba(17 / 255, 19 / 255, 22 / 255, dockOpacity)
+    readonly property color dockGlass: Qt.rgba(dockBase.r, dockBase.g, dockBase.b, dockOpacity)
+
+    // Palette: opaque base colours. Opacity is applied separately (theme.opacity, dock.opacity).
+    readonly property color barBase: paletteBar
+    readonly property color dockBase: paletteDock
+    property string paletteWindow: "#14161c"
+    property string paletteSidebar: "#0f1116"
+    property string paletteBar: "#16262e"
+    property string paletteDock: "#111316"
+    property string paletteText: "#f5f9fd"
+    property string paletteTextSecondary: "#c9d6e8"
+    property string paletteMuted: "#9fb0c6"
+    property string paletteInk: "#ffffff"
+    property string paletteIconTile: "#1f2a33"
+    property string paletteOk: "#34d399"
+    property string paletteWarning: "#fb923c"
+    property string paletteDanger: "#f0708a"
 
     property string status: "loading"
     property string statusDetail: ""
     readonly property string configPath: projectDir + "/config/config.json"
 
     // ── Live values. Defaults are the Levish Aqua identity. ─────────────────
-    property string accentColor: "#c8f7ef"
+    // Plain default: Palette reads this value, so it must not read the palette back.
+    property string accentColor: Theme.accent
     property real glassOpacity: 0.85
     property real dockOpacity: 0.76
     property int cornerRadius: 22
@@ -44,6 +63,13 @@ Item {
     property bool showDate: true
     property bool showSeconds: false
     property bool showGpu: true
+    // Top bar zones. Each can be hidden; the bar keeps working without it.
+    property bool showPerf: true
+    property bool showWorkspaces: true
+    property bool showWindowTitle: true
+    property bool showClock: true
+    property bool showStatus: true
+    property bool showTray: true
     property bool showTemp: true
     property int workspaceFocusedWidth: 40
     property int workspaceHeight: 14
@@ -52,12 +78,26 @@ Item {
     property bool dockEnabled: true
     property int dockIconSize: 48
     property bool dockAutoHide: false
+    property int dockSpacing: 4
+    property real dockShadow: 1.0
+    property string dockPosition: "bottom"
+    // Border strength for the dock (theme.border) and an optional outline on the bar (bar.border).
+    property real borderStrength: 0.2
+    property real barBorder: 0.0
+    // Top bar placement: which edge, distance from that edge, distance from the sides, corner radius.
+    property string barPosition: "top"
+    property int barGap: 0
+    property int barSideMargin: 0
+    property int barRadius: 0
+    property real dockZoom: 1.12
     property int dockMargin: 10
     property string dockMonitor: ""      // "" = first screen, "all" = every screen, or a screen name
 
     // Wallpaper. Empty path = fallback to /usr/share/hypr/wall0.png.
     property string wallpaperPath: "/usr/share/hypr/wall0.png"
     property string wallpaperFolder: ""
+    // Per-monitor overrides, "DP-1=/path/a.png;HDMI-A-1=/path/b.png". Monitors not listed use wallpaper.path.
+    property string wallpaperMonitors: ""
     property string wallpaperFit: "cover"
     property bool wallpaperAutoRotate: false
     property int wallpaperInterval: 1800
@@ -115,133 +155,33 @@ Item {
     property bool lockHideUserDetails: false
     property bool lockDisableWidgets: false
 
+    // Shell-wide reduced motion, and the Settings page to open on start.
+    property bool reducedMotion: false
+    // Text scale. Read when text is created, so a change is complete after a shell restart.
+    property real fontScale: 1.0
+    onFontScaleChanged: Theme.fontScale = fontScale
+    onReducedMotionChanged: Theme.motionScale = reducedMotion ? 0 : 1
+    property string settingsLastPage: "overview"
+
     property string launcherDefaultView: "grid"
+    property int launcherIconSize: 42
+    property string launcherSort: "name"
+    // Desktop IDs hidden from the launcher, comma separated (for example "htop,avahi-discover").
+    property string launcherHidden: ""
     property int launcherColumns: 5
 
-    // ── Schema: every persisted key. `prop` is the live property it drives. ──
-    readonly property var schema: ({
-        "theme.accent":         { prop: "accentColor",          kind: "color", def: "#c8f7ef" },
-        "theme.opacity":        { prop: "glassOpacity",         kind: "real",  def: 0.85, min: 0.3, max: 1.0 },
-        "theme.radius":         { prop: "cornerRadius",         kind: "int",   def: 22, min: 4, max: 28 },
-        "theme.font_family":    { prop: "fontFamily",           kind: "string",def: "JetBrains Mono", max: 64 },
-        "dock.opacity":         { prop: "dockOpacity",          kind: "real",  def: 0.76, min: 0.3, max: 1.0 },
-
-        "bar.height":           { prop: "barHeight",            kind: "int",   def: 34, min: 28, max: 60 },
-        "bar.clock_format":     { prop: "clockFormat",          kind: "enum",  def: "HH:mm", choices: ["HH:mm", "hh:mm AP"] },
-        "bar.show_date":        { prop: "showDate",             kind: "bool",  def: true },
-        "bar.show_seconds":     { prop: "showSeconds",          kind: "bool",  def: false },
-        "bar.show_gpu":         { prop: "showGpu",              kind: "bool",  def: true },
-        "bar.show_temp":        { prop: "showTemp",             kind: "bool",  def: true },
-        "bar.ws_width":         { prop: "workspaceFocusedWidth", kind: "int",  def: 40, min: 20, max: 64 },
-        "bar.ws_height":        { prop: "workspaceHeight",      kind: "int",   def: 14, min: 8, max: 24 },
-        "bar.ws_radius":        { prop: "workspaceRadius",      kind: "int",   def: 7, min: 3, max: 12 },
-
-        "dock.enabled":         { prop: "dockEnabled",          kind: "bool",  def: true },
-        "dock.icon_size":       { prop: "dockIconSize",         kind: "int",   def: 48, min: 24, max: 96 },
-        "dock.auto_hide":       { prop: "dockAutoHide",         kind: "bool",  def: false },
-        "dock.margin":          { prop: "dockMargin",           kind: "int",   def: 10, min: 0, max: 200 },
-        "dock.monitor":         { prop: "dockMonitor",          kind: "string",def: "", max: 64 },
-
-        "launcher.default_view":{ prop: "launcherDefaultView",  kind: "enum",  def: "grid", choices: ["grid", "list"] },
-        "launcher.columns":     { prop: "launcherColumns",      kind: "int",   def: 5, min: 3, max: 8 },
-        "wallpaper.path":       { prop: "wallpaperPath",        kind: "string",def: "/usr/share/hypr/wall0.png", max: 4096 },
-        "wallpaper.folder":     { prop: "wallpaperFolder",      kind: "string",def: "", max: 4096 },
-        "wallpaper.fit":        { prop: "wallpaperFit",         kind: "enum",  def: "cover", choices: ["cover", "contain", "stretch", "tile"] },
-        "wallpaper.auto_rotate":{ prop: "wallpaperAutoRotate",  kind: "bool",  def: false },
-        "wallpaper.interval":   { prop: "wallpaperInterval",    kind: "int",   def: 1800, min: 30, max: 86400 },
-
-        "notifications.enabled":      { prop: "notificationsEnabled",  kind: "bool",  def: true },
-        "notifications.timeout_ms":   { prop: "notificationTimeout",   kind: "int",   def: 5000, min: 1000, max: 60000 },
-        "notifications.position":     { prop: "notificationPosition",  kind: "enum",  def: "top-right", choices: ["top-right", "top-left", "bottom-right", "bottom-left"] },
-        "notifications.max_visible":  { prop: "notificationMaxVisible", kind: "int",   def: 3, min: 1, max: 6 },
-
-        "osd.volume":           { prop: "osdVolume",            kind: "bool",  def: true },
-        "osd.brightness":       { prop: "osdBrightness",        kind: "bool",  def: true },
-        "osd.keyboard":         { prop: "osdKeyboard",          kind: "bool",  def: true },
-        "osd.timeout_ms":       { prop: "osdTimeout",           kind: "int",   def: 2000, min: 800, max: 6000 },
-
-        "clipboard.enabled":    { prop: "clipboardEnabled",     kind: "bool",  def: false },
-        "clipboard.max_items":  { prop: "clipboardMax",         kind: "int",   def: 50, min: 5, max: 200 },
-
-        "nightlight.enabled":   { prop: "nightlightEnabled",    kind: "bool",  def: false },
-        "nightlight.temperature": { prop: "nightlightTemp",     kind: "int",   def: 4000, min: 2500, max: 6500 },
-
-        "lock.timeout_min":     { prop: "lockTimeoutMin",       kind: "int",   def: 0, min: 0, max: 120 },
-        "lock.before_sleep":    { prop: "lockBeforeSleep",      kind: "bool",  def: false },
-        "lock.layout":          { prop: "lockLayout",           kind: "enum",  def: "cinematic", choices: ["cinematic", "editorial", "minimal", "split"] },
-        "lock.clock_format":    { prop: "lockClockFormat",      kind: "enum",  def: "HH:mm", choices: ["HH:mm", "hh:mm AP"] },
-        "lock.show_seconds":    { prop: "lockShowSeconds",      kind: "bool",  def: false },
-        "lock.clock_scale":     { prop: "lockClockScale",       kind: "real",  def: 1.0, min: 0.7, max: 1.6 },
-        "lock.use_desktop_wallpaper": { prop: "lockUseDesktopWallpaper", kind: "bool", def: true },
-        "lock.custom_wallpaper_path": { prop: "lockCustomWallpaperPath", kind: "string", def: "", max: 4096 },
-        "lock.blur":            { prop: "lockBlur",             kind: "int",   def: 32, min: 0, max: 64 },
-        "lock.dimming":         { prop: "lockDimming",          kind: "real",  def: 0.45, min: 0.0, max: 0.95 },
-        "lock.vignette":        { prop: "lockVignette",         kind: "real",  def: 0.5, min: 0.0, max: 1.0 },
-        "lock.ambient_effects": { prop: "lockAmbientEffects",   kind: "bool",  def: true },
-        "lock.reduced_motion":  { prop: "lockReducedMotion",    kind: "bool",  def: false },
-        "lock.show_greeting":   { prop: "lockShowGreeting",     kind: "bool",  def: true },
-        "lock.custom_greeting": { prop: "lockCustomGreeting",   kind: "string",def: "", max: 128 },
-        "lock.show_display_name": { prop: "lockShowDisplayName",kind: "bool",  def: true },
-        "lock.show_username":   { prop: "lockShowUsername",     kind: "bool",  def: true },
-        "lock.show_hostname":   { prop: "lockShowHostname",     kind: "bool",  def: false },
-        "lock.custom_avatar":   { prop: "lockCustomAvatar",     kind: "string",def: "", max: 4096 },
-        "lock.show_weather":    { prop: "lockShowWeather",      kind: "bool",  def: false },
-        "lock.weather_location":{ prop: "lockWeatherLocation",  kind: "string",def: "", max: 128 },
-        "lock.weather_units":   { prop: "lockWeatherUnits",     kind: "enum",  def: "C", choices: ["C", "F"] },
-        "lock.show_battery":    { prop: "lockShowBattery",      kind: "bool",  def: true },
-        "lock.show_network":    { prop: "lockShowNetwork",      kind: "bool",  def: true },
-        "lock.show_media":      { prop: "lockShowMedia",        kind: "bool",  def: true },
-        "lock.show_uptime":     { prop: "lockShowUptime",       kind: "bool",  def: false },
-        "lock.hide_sensitive_media": { prop: "lockHideSensitiveMedia", kind: "bool", def: false },
-        "lock.hide_user_details": { prop: "lockHideUserDetails", kind: "bool", def: false },
-        "lock.disable_widgets": { prop: "lockDisableWidgets",   kind: "bool",  def: false }
-    })
+    // ── Schema: every persisted key, defined in common/ConfigSchema.js ────────
+    readonly property var schema: Schema.schema
 
     // Keys the settings app may reset, in display order.
-    readonly property var schemaPaths: Object.keys(schema)
+    readonly property var schemaPaths: Schema.schemaPaths()
 
     // Keeps the whole document, so keys this service does not own (shortcuts, metrics_interval…)
     // survive every save untouched.
     property var doc: ({})
 
     // ── Validation ──────────────────────────────────────────────────────────
-    function coerce(entry, value) {
-        if (value === undefined || value === null) return undefined
-        switch (entry.kind) {
-        case "color": {
-            const s = String(value).trim().toLowerCase()
-            return /^#[0-9a-f]{6}$/.test(s) ? s : undefined
-        }
-        case "real": {
-            const n = Number(value)
-            if (typeof value === "boolean" || !isFinite(n)) return undefined
-            return Math.max(entry.min, Math.min(entry.max, n))
-        }
-        case "int": {
-            const n = Number(value)
-            if (typeof value === "boolean" || !isFinite(n)) return undefined
-            return Math.max(entry.min, Math.min(entry.max, Math.round(n)))
-        }
-        case "bool":
-            return typeof value === "boolean" ? value : undefined
-        case "enum":
-            return entry.choices.indexOf(value) >= 0 ? value : undefined
-        case "string":
-            return typeof value === "string" && value.length <= entry.max ? value : undefined
-        }
-        return undefined
-    }
-
-    function _split(path) {
-        const i = path.indexOf(".")
-        return i < 0 ? ["", path] : [path.substring(0, i), path.substring(i + 1)]
-    }
-
-    function _rawFor(d, path) {
-        const parts = _split(path)
-        if (parts[0] === "") return d[parts[1]]
-        return d[parts[0]] ? d[parts[0]][parts[1]] : undefined
-    }
+    function coerce(entry, value) { return Schema.coerce(entry, value) }
 
     // Reads the live value for a schema path.
     function valueOf(path) {
@@ -251,10 +191,9 @@ Item {
 
     // ── Loading ─────────────────────────────────────────────────────────────
     function _load(raw) {
-        let parsed = null
+        let result = null
         try {
-            parsed = JSON.parse(raw)
-            if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("root is not an object")
+            result = Schema.load(raw)
         } catch (e) {
             console.warn("ThemeStore: config.json is unreadable, using defaults: " + e)
             store.doc = ({})
@@ -264,22 +203,14 @@ Item {
             store.statusDetail = "config.json could not be parsed; defaults are in use."
             return
         }
-        store.doc = parsed
-        let bad = []
-        for (const path of schemaPaths) {
-            const e = schema[path]
-            const v = coerce(e, _rawFor(parsed, path))
-            if (v === undefined) {
-                if (_rawFor(parsed, path) !== undefined) bad.push(path)
-                store[e.prop] = e.def
-            } else {
-                store[e.prop] = v
-            }
-        }
-        // Legacy top-level "monitor" (used by older configs) feeds the dock when dock.monitor is empty.
-        if (store.dockMonitor === "" && typeof parsed.monitor === "string") store.dockMonitor = parsed.monitor
+        store.doc = result.doc
+        store._newer = result.newer
+        for (const path of schemaPaths) store[schema[path].prop] = result.values[path]
         store.status = "ok"
-        store.statusDetail = bad.length ? (bad.length + " invalid value(s) reset to defaults: " + bad.join(", ")) : ""
+        const notes = []
+        if (result.newer) notes.push("written by a newer Levish; unknown settings are kept as they are")
+        if (result.rejected.length) notes.push(result.rejected.length + " invalid value(s) reset to defaults: " + result.rejected.join(", "))
+        store.statusDetail = notes.join(". ")
     }
 
     function _applyDefaults() {
@@ -316,6 +247,7 @@ Item {
         printErrors: false
     }
     property bool _backedUp: false
+    property bool _newer: false
 
     // ── Writing ─────────────────────────────────────────────────────────────
     // Applies [[path, value], …] in one go and persists once. Returns the list of rejected paths.
@@ -323,6 +255,8 @@ Item {
         const rejected = []
         // Never write before the file has loaded: that would replace the user's document with a partial one.
         if (store.status === "loading") return pairs.map(p => p[0])
+        // A file written by a newer Levish would be downgraded on save. Leave it alone instead.
+        if (store._newer) return pairs.map(p => p[0])
         const next = JSON.parse(JSON.stringify(store.doc))
         let changed = false
         const applied = []
@@ -330,13 +264,7 @@ Item {
             const e = schema[path]
             const v = e ? coerce(e, value) : undefined
             if (v === undefined) { rejected.push(path); continue }
-            const parts = _split(path)
-            if (parts[0] === "") {
-                next[parts[1]] = v
-            } else {
-                if (typeof next[parts[0]] !== "object" || next[parts[0]] === null) next[parts[0]] = {}
-                next[parts[0]][parts[1]] = v
-            }
+            Schema.writeFor(next, path, v)
             store[e.prop] = v
             applied.push({ path: path, value: String(v), time: Qt.formatTime(new Date(), "HH:mm:ss") })
             changed = true
@@ -348,6 +276,37 @@ Item {
         }
         return rejected
     }
+
+    // ── Import and export (text, so it works without a file dialog) ─────────
+    // The settings document as text, ready to copy or save.
+    function exportText() { return Schema.serialize(store.doc) }
+
+    // Applies a settings document. Only keys present in it change; everything else is kept.
+    // Returns { ok, applied, rejected, error }. Nothing is written when the text is not valid.
+    function importText(text) {
+        let r = null
+        try {
+            r = Schema.load(text)
+        } catch (e) {
+            return { ok: false, applied: 0, rejected: [], error: "Not a settings file: " + e.message }
+        }
+        if (r.newer) return { ok: false, applied: 0, rejected: [], error: "This file was written by a newer Levish and cannot be imported." }
+        const pairs = []
+        for (const path of schemaPaths) {
+            if (Schema.rawFor(r.doc, path) !== undefined) pairs.push([path, r.values[path]])
+        }
+        const rejectedWrites = setMany(pairs)
+        return { ok: true, applied: pairs.length - rejectedWrites.length, rejected: r.rejected, error: "" }
+    }
+
+    // Applies a named palette preset (every key it lists). Returns false for an unknown name.
+    function applyPreset(name) {
+        const p = Schema.presets[name]
+        if (!p) return false
+        setMany(Object.keys(p).map(k => [k, p[k]]))
+        return true
+    }
+    readonly property var presetNames: Object.keys(Schema.presets)
 
     // Last changes made in this session, newest first. Not persisted.
     property var recentChanges: []
@@ -379,13 +338,13 @@ Item {
             backupFile.setText(configFile.text())
         }
         store.doc = next
-        configFile.setText(JSON.stringify(next, null, 2) + "\n")
+        configFile.setText(Schema.serialize(next))
         if (status !== "ok") { status = "ok"; statusDetail = "" }
     }
 
     // ── Presets for the accent swatches (kept deliberately small) ────────────
     readonly property var accentSwatches: [
-        { name: "Aqua",     hex: "#c8f7ef" },
+        { name: "Aqua",     hex: Palette.accent },
         { name: "Turquoise", hex: "#2dd4bf" },
         { name: "Cyan",     hex: "#38bdf8" },
         { name: "Blue",     hex: "#60a5fa" },

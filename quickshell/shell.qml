@@ -6,6 +6,7 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
 import "common"
+import "common" as Pal
 import "bar"
 import "dashboard"
 import "controls"
@@ -24,6 +25,9 @@ ShellRoot {
     id: root
 
     ThemeStore { id: themeStore }
+    // The colour palette reads its values from this store. Set through the alias import: the bare
+    // name does not reach the singleton from this file.
+    Component.onCompleted: Pal.Palette.store = themeStore
     readonly property var themeStoreObj: themeStore
     Data { id: dataStore }
     readonly property var store: dataStore

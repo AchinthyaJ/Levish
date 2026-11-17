@@ -8,6 +8,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import "widgets"
+import "../common" as Pal
 
 Item {
     id: svc
@@ -74,7 +75,7 @@ Item {
         const wall = (svc.themeStore && !svc.themeStore.lockUseDesktopWallpaper && svc.themeStore.lockCustomWallpaperPath !== "")
                      ? svc.themeStore.lockCustomWallpaperPath
                      : (svc.themeStore ? svc.themeStore.wallpaperPath : "/usr/share/hypr/wall0.png")
-        const accent = svc.themeStore ? svc.themeStore.accentColor : "#c8f7ef"
+        const accent = svc.themeStore ? svc.themeStore.accentColor : Pal.Palette.accent
         const font = svc.themeStore ? svc.themeStore.fontFamily : "JetBrains Mono"
         const blurPasses = svc.themeStore ? Math.max(1, Math.min(4, Math.round(svc.themeStore.lockBlur / 16))) : 3
         const blurSize = svc.themeStore ? Math.max(2, Math.min(10, Math.round(svc.themeStore.lockBlur / 5))) : 7

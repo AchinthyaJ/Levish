@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import "../../common" as C
 import "../../common/Theme.js" as Theme
+import "../../common" as Pal
 
 Rectangle {
     id: root
@@ -13,7 +14,7 @@ Rectangle {
 
     readonly property bool isConnected: network ? network.connected : false
     readonly property string ssid: (network && network.ssid) ? network.ssid : "Disconnected"
-    readonly property color accent: themeStore ? themeStore.accentColor : "#c8f7ef"
+    readonly property color accent: themeStore ? themeStore.accentColor : Pal.Palette.accent
 
     implicitHeight: Math.round(32 * screenScale)
     implicitWidth: row.implicitWidth + Math.round(20 * screenScale)

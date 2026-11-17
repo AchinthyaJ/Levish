@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import "../../common" as C
 import "../../common/Theme.js" as Theme
+import "../../common" as Pal
 
 Rectangle {
     id: root
@@ -22,12 +23,12 @@ Rectangle {
     // Damped shake animation on authentication failure
     SequentialAnimation {
         id: shakeAnim
-        NumberAnimation { target: root; property: "shakeOffset"; to: -12; duration: 55; easing.type: Easing.OutQuad }
-        NumberAnimation { target: root; property: "shakeOffset"; to: 12; duration: 60; easing.type: Easing.InOutQuad }
-        NumberAnimation { target: root; property: "shakeOffset"; to: -8; duration: 60; easing.type: Easing.InOutQuad }
-        NumberAnimation { target: root; property: "shakeOffset"; to: 8; duration: 65; easing.type: Easing.InOutQuad }
-        NumberAnimation { target: root; property: "shakeOffset"; to: -4; duration: 50; easing.type: Easing.InOutQuad }
-        NumberAnimation { target: root; property: "shakeOffset"; to: 0; duration: 50; easing.type: Easing.InQuad }
+        NumberAnimation { target: root; property: "shakeOffset"; to: -12; duration: Theme.dur(55); easing.type: Easing.OutQuad }
+        NumberAnimation { target: root; property: "shakeOffset"; to: 12; duration: Theme.dur(60); easing.type: Easing.InOutQuad }
+        NumberAnimation { target: root; property: "shakeOffset"; to: -8; duration: Theme.dur(60); easing.type: Easing.InOutQuad }
+        NumberAnimation { target: root; property: "shakeOffset"; to: 8; duration: Theme.dur(65); easing.type: Easing.InOutQuad }
+        NumberAnimation { target: root; property: "shakeOffset"; to: -4; duration: Theme.dur(50); easing.type: Easing.InOutQuad }
+        NumberAnimation { target: root; property: "shakeOffset"; to: 0; duration: Theme.dur(50); easing.type: Easing.InQuad }
     }
 
     Connections {
@@ -39,14 +40,14 @@ Rectangle {
 
     readonly property bool isError: root.pam && root.pam.status === "error"
     readonly property bool isAuth: root.pam && root.pam.status === "authenticating"
-    readonly property color accent: root.themeStore ? root.themeStore.accentColor : "#c8f7ef"
+    readonly property color accent: root.themeStore ? root.themeStore.accentColor : Pal.Palette.accent
 
     color: isError ? "#281a20" : "#121b24cc"
     border.color: isError ? "#f0708a" : (root.pam && root.pam.buffer.length > 0 ? root.accent : "#30ffffff")
     border.width: (isError || (root.pam && root.pam.buffer.length > 0)) ? 1.5 : 1
 
-    Behavior on border.color { ColorAnimation { duration: 180 } }
-    Behavior on color { ColorAnimation { duration: 180 } }
+    Behavior on border.color { ColorAnimation { duration: Theme.dur(180) } }
+    Behavior on color { ColorAnimation { duration: Theme.dur(180) } }
 
     RowLayout {
         anchors.fill: parent
@@ -81,7 +82,7 @@ Rectangle {
                 RotationAnimation on rotation {
                     running: root.isAuth
                     loops: Animation.Infinite
-                    from: 0; to: 360; duration: 800
+                    from: 0; to: 360; duration: Theme.dur(800)
                 }
             }
         }
@@ -158,7 +159,7 @@ Rectangle {
                    ? (submitMA.containsMouse ? Qt.lighter(root.accent, 1.1) : root.accent)
                    : (submitMA.containsMouse ? "#28ffffff" : "#18ffffff")
 
-            Behavior on color { ColorAnimation { duration: 150 } }
+            Behavior on color { ColorAnimation { duration: Theme.dur(150) } }
 
             Text {
                 anchors.centerIn: parent

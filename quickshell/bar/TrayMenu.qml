@@ -4,6 +4,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 import "../common/Theme.js" as Theme
+import "../common" as Pal
 
 Scope {
     id: root
@@ -60,8 +61,8 @@ Scope {
             width: 264
             height: menuCol.implicitHeight + 16
             radius: 14
-            color: Theme.glass
-            border.color: Theme.glassEdge
+            color: Pal.Palette.glass
+            border.color: Pal.Palette.glassEdge
             border.width: 1
 
             Column {

@@ -2,6 +2,7 @@
 import QtQuick
 import QtQuick.Layouts
 import "../../common/Theme.js" as Theme
+import "../../common" as Pal
 
 RowLayout {
     id: row
@@ -17,16 +18,16 @@ RowLayout {
         spacing: 2
         Text {
             text: row.label
-            color: Theme.text
-            font.pixelSize: 13
+            color: Pal.Palette.text
+            font.pixelSize: Theme.fs(13)
             Layout.fillWidth: true
             wrapMode: Text.Wrap
         }
         Text {
             visible: row.hint !== ""
             text: row.hint
-            color: Theme.muted
-            font.pixelSize: 11
+            color: Pal.Palette.muted
+            font.pixelSize: Theme.fs(11)
             Layout.fillWidth: true
             wrapMode: Text.Wrap
         }

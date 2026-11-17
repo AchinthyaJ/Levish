@@ -1,6 +1,6 @@
 {
   "theme": {
-    "accent": "#c8f7ef",
+    "accent": "#fb923c",
     "opacity": 0.64,
     "radius": 28,
     "font_family": "JetBrains Mono",
@@ -15,7 +15,8 @@
     "ws_radius": 7,
     "show_seconds": true,
     "show_gpu": true,
-    "show_temp": true
+    "show_temp": true,
+    "show_perf": true
   },
   "dock": {
     "enabled": true,
@@ -51,5 +52,26 @@
   },
   "clipboard": {
     "enabled": false
+  },
+  "config_version": 1,
+  "settings": {
+    "last_page": "appearance"
+  },
+  "palette": {
+    "window": "#1c1511",
+    "sidebar": "#15100c",
+    "bar": "#2a1d16",
+    "dock": "#201611",
+    "text": "#fbeee3",
+    "text_secondary": "#e6d3c2",
+    "muted": "#b59c88",
+    "ink": "#ffffff",
+    "icon_tile": "#33241b",
+    "ok": "#a3e635",
+    "warning": "#fbbf24",
+    "danger": "#f87171"
+  },
+  "ui": {
+    "reduced_motion": false
   }
 }

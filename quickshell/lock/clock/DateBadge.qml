@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import "../../common" as C
 import "../../common/Theme.js" as Theme
+import "../../common" as Pal
 
 Rectangle {
     id: root
@@ -27,13 +28,13 @@ Rectangle {
             Layout.preferredWidth: Math.round(14 * root.scaleFactor)
             Layout.preferredHeight: Math.round(14 * root.scaleFactor)
             kind: "moon"
-            tint: root.themeStore ? root.themeStore.accentColor : "#c8f7ef"
+            tint: root.themeStore ? root.themeStore.accentColor : Pal.Palette.accent
         }
 
         Text {
             id: dayText
             text: Qt.formatDate(root.currentTime, "dddd").toUpperCase()
-            color: root.themeStore ? root.themeStore.accentColor : "#c8f7ef"
+            color: root.themeStore ? root.themeStore.accentColor : Pal.Palette.accent
             font.family: root.themeStore ? root.themeStore.fontFamily : "JetBrains Mono"
             font.pixelSize: Math.round(12 * root.scaleFactor)
             font.weight: Font.DemiBold

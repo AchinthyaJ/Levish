@@ -10,6 +10,7 @@ import Quickshell.Services.SystemTray
 import "../common" as C
 import "../common/Theme.js" as Theme
 import "." as B
+import "../common" as Pal
 
 PanelWindow {
     id: bar
@@ -29,10 +30,15 @@ PanelWindow {
     property bool settingsOpen: false
     property int pendingDeleteWs: -1
 
-    anchors { top: true; left: true; right: true }
+    // Placement from Settings. Gap is the distance from the chosen edge, side margin from the left and right.
+    readonly property bool atBottom: bar.themeStore ? bar.themeStore.barPosition === "bottom" : false
+    readonly property int gapPx: bar.themeStore ? bar.themeStore.barGap : 0
+    anchors { top: !atBottom; bottom: atBottom; left: true; right: true }
+    margins { top: atBottom ? 0 : gapPx; bottom: atBottom ? gapPx : 0
+              left: bar.themeStore ? bar.themeStore.barSideMargin : 0; right: bar.themeStore ? bar.themeStore.barSideMargin : 0 }
     implicitHeight: (bar.themeStore && bar.themeStore.barHeight) ? (bar.themeStore.barHeight + 4) : (Theme.barHeight + 4)
     color: "transparent"
-    exclusiveZone: bar.implicitHeight
+    exclusiveZone: bar.implicitHeight + bar.gapPx
     WlrLayershell.namespace: "levish-bar"
     WlrLayershell.layer: WlrLayer.Top
 
@@ -115,11 +121,13 @@ PanelWindow {
     Rectangle {
         id: barBackground
         anchors.fill: parent
-        color: bar.themeStore ? bar.themeStore.glassColor : Theme.glass
-        // No outline: the bar is a plain glass surface, and windows start directly below it.
-        border.width: 0
+        color: bar.themeStore ? bar.themeStore.glassColor : Pal.Palette.glass
+        radius: bar.themeStore ? bar.themeStore.barRadius : 0
+        // Outline is off by default (bar.border = 0), so the bar stays a plain glass surface.
+        border.width: bar.themeStore && bar.themeStore.barBorder > 0 ? 1 : 0
+        border.color: Qt.rgba(1, 1, 1, bar.themeStore ? bar.themeStore.barBorder : 0)
 
-        Behavior on color { ColorAnimation { duration: 180 } }
+        Behavior on color { ColorAnimation { duration: Theme.dur(180) } }
 
         // Cancel workspace delete mode if clicked elsewhere on the bar
         MouseArea {
@@ -138,14 +146,15 @@ PanelWindow {
             // =========================================================
             Rectangle {
                 id: perfZone
+                visible: bar.themeStore ? bar.themeStore.showPerf : true
                 implicitWidth: perfRow.childrenRect.width + 16
                 implicitHeight: bar.height - 8
                 radius: 8
                 color: perfMA.containsMouse || bar.perfOpen ? "#18ffffff" : "transparent"
                 border.color: perfMA.containsMouse || bar.perfOpen ? "#26ffffff" : "transparent"
                 border.width: 1
-                Behavior on color { ColorAnimation { duration: 150 } }
-                Behavior on border.color { ColorAnimation { duration: 150 } }
+                Behavior on color { ColorAnimation { duration: Theme.dur(150) } }
+                Behavior on border.color { ColorAnimation { duration: Theme.dur(150) } }
 
                 Row {
                     id: perfRow
@@ -165,8 +174,8 @@ PanelWindow {
                         }
                         Text {
                             text: Math.round(bar.store.metrics.cpu_percent) + "%"
-                            color: Theme.text
-                            font.pixelSize: 12
+                            color: Pal.Palette.text
+                            font.pixelSize: Theme.fs(12)
                             font.family: "JetBrains Mono"
                             font.weight: Font.Medium
                             anchors.verticalCenter: parent.verticalCenter
@@ -185,8 +194,8 @@ PanelWindow {
                         }
                         Text {
                             text: Math.round(bar.store.metrics.ram_percent) + "%"
-                            color: Theme.text
-                            font.pixelSize: 12
+                            color: Pal.Palette.text
+                            font.pixelSize: Theme.fs(12)
                             font.family: "JetBrains Mono"
                             font.weight: Font.Medium
                             anchors.verticalCenter: parent.verticalCenter
@@ -206,8 +215,8 @@ PanelWindow {
                         }
                         Text {
                             text: Math.round(bar.store.metrics.gpu_percent || 0) + "%"
-                            color: Theme.text
-                            font.pixelSize: 12
+                            color: Pal.Palette.text
+                            font.pixelSize: Theme.fs(12)
                             font.family: "JetBrains Mono"
                             font.weight: Font.Medium
                             anchors.verticalCenter: parent.verticalCenter
@@ -221,14 +230,14 @@ PanelWindow {
                         anchors.verticalCenter: parent.verticalCenter
                         C.Icon {
                             kind: "thermo"
-                            tint: Theme.muted
+                            tint: Pal.Palette.muted
                             width: 14; height: 14
                             anchors.verticalCenter: parent.verticalCenter
                         }
                         Text {
                             text: Math.round(bar.store.metrics.cpu_temp || 0) + "°"
-                            color: Theme.muted
-                            font.pixelSize: 12
+                            color: Pal.Palette.muted
+                            font.pixelSize: Theme.fs(12)
                             font.family: "JetBrains Mono"
                             anchors.verticalCenter: parent.verticalCenter
                         }
@@ -256,6 +265,7 @@ PanelWindow {
             // =========================================================
             Row {
                 id: workspaceZone
+                visible: bar.themeStore ? bar.themeStore.showWorkspaces : true
                 spacing: 8
                 Layout.alignment: Qt.AlignVCenter
 
@@ -271,17 +281,17 @@ PanelWindow {
                         width: isPendingDelete ? 22 : (modelData.focused ? pillWidth : pillHeight)
                         height: isPendingDelete ? 22 : pillHeight
                         anchors.verticalCenter: parent.verticalCenter
-                        Behavior on width { NumberAnimation { duration: 240; easing.type: Easing.OutBack } }
+                        Behavior on width { NumberAnimation { duration: Theme.dur(240); easing.type: Easing.OutBack } }
 
                         // Standard workspace pill
                         Rectangle {
                             anchors.fill: parent
                             visible: !isPendingDelete
                             radius: pillRadius
-                            color: modelData.focused ? (bar.themeStore ? bar.themeStore.accentColor : Theme.accent) : (modelData.active ? "#ddffffff" : "#44ffffff")
-                            border.color: modelData.focused ? (bar.themeStore ? bar.themeStore.accentColor : Theme.accent) : "#22ffffff"
+                            color: modelData.focused ? (bar.themeStore ? bar.themeStore.accentColor : Pal.Palette.accent) : (modelData.active ? "#ddffffff" : "#44ffffff")
+                            border.color: modelData.focused ? (bar.themeStore ? bar.themeStore.accentColor : Pal.Palette.accent) : "#22ffffff"
                             border.width: 1
-                            Behavior on color { ColorAnimation { duration: 180 } }
+                            Behavior on color { ColorAnimation { duration: Theme.dur(180) } }
                         }
 
                         // Trash replacement mode
@@ -337,16 +347,16 @@ PanelWindow {
                     radius: 10
                     anchors.verticalCenter: parent.verticalCenter
                     color: addMA.containsMouse ? "#26ffffff" : "#12ffffff"
-                    border.color: addMA.containsMouse ? (bar.themeStore ? bar.themeStore.accentColor : Theme.accent) : "#22ffffff"
+                    border.color: addMA.containsMouse ? (bar.themeStore ? bar.themeStore.accentColor : Pal.Palette.accent) : "#22ffffff"
                     border.width: 1
-                    Behavior on color { ColorAnimation { duration: 150 } }
-                    Behavior on border.color { ColorAnimation { duration: 150 } }
+                    Behavior on color { ColorAnimation { duration: Theme.dur(150) } }
+                    Behavior on border.color { ColorAnimation { duration: Theme.dur(150) } }
 
                     C.Icon {
                         anchors.centerIn: parent
                         width: 11; height: 11
                         kind: "plus"
-                        tint: addMA.containsMouse ? (bar.themeStore ? bar.themeStore.accentColor : Theme.accent) : Theme.muted
+                        tint: addMA.containsMouse ? (bar.themeStore ? bar.themeStore.accentColor : Pal.Palette.accent) : Pal.Palette.muted
                     }
 
                     MouseArea {
@@ -368,6 +378,7 @@ PanelWindow {
                 Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                 spacing: 8
                 Layout.maximumWidth: 420
+                visible: bar.themeStore ? bar.themeStore.showWindowTitle : true
 
                 Text {
                     text: {
@@ -377,8 +388,8 @@ PanelWindow {
                         if (cls.length > 0) return cls
                         return "Desktop"
                     }
-                    color: Theme.text
-                    font.pixelSize: 12
+                    color: Pal.Palette.text
+                    font.pixelSize: Theme.fs(12)
                     font.weight: Font.Medium
                     elide: Text.ElideMiddle
                     maximumLineCount: 1
@@ -394,6 +405,7 @@ PanelWindow {
             // =========================================================
             Rectangle {
                 id: clockZone
+                visible: bar.themeStore ? bar.themeStore.showClock : true
                 implicitWidth: clockRow.childrenRect.width + 12
                 implicitHeight: bar.height - 8
                 radius: 6
@@ -428,14 +440,15 @@ PanelWindow {
                 // System indicators group (Wi-Fi, Bluetooth, Audio, Battery)
                 Rectangle {
                     id: statusZone
+                    visible: bar.themeStore ? bar.themeStore.showStatus : true
                     implicitWidth: statusRow.childrenRect.width + 14
                     implicitHeight: bar.height - 8
                     radius: 8
                     color: statusMA.containsMouse || bar.statusOpen ? "#18ffffff" : "transparent"
                     border.color: statusMA.containsMouse || bar.statusOpen ? "#26ffffff" : "transparent"
                     border.width: 1
-                    Behavior on color { ColorAnimation { duration: 150 } }
-                    Behavior on border.color { ColorAnimation { duration: 150 } }
+                    Behavior on color { ColorAnimation { duration: Theme.dur(150) } }
+                    Behavior on border.color { ColorAnimation { duration: Theme.dur(150) } }
 
                     Row {
                         id: statusRow
@@ -447,7 +460,7 @@ PanelWindow {
                         C.Icon {
                             width: 15; height: 15
                             kind: bar.store.network.connected ? "wifi" : "wifiOff"
-                            tint: bar.store.network.connected ? (bar.themeStore ? bar.themeStore.accentColor : Theme.accent) : Theme.muted
+                            tint: bar.store.network.connected ? (bar.themeStore ? bar.themeStore.accentColor : Pal.Palette.accent) : Pal.Palette.muted
                             anchors.verticalCenter: parent.verticalCenter
                         }
 
@@ -459,7 +472,7 @@ PanelWindow {
                             C.Icon {
                                 width: 15; height: 15
                                 kind: bar.store.audio.muted ? "mute" : (bar.store.audio.volume > 33 ? "volume" : "volLow")
-                                tint: bar.store.audio.muted ? Theme.muted : Theme.text
+                                tint: bar.store.audio.muted ? Pal.Palette.muted : Pal.Palette.text
                                 anchors.verticalCenter: parent.verticalCenter
                             }
 
@@ -471,8 +484,8 @@ PanelWindow {
                                 Rectangle {
                                     width: parent.width * Math.max(0, Math.min(1, bar.store.audio.volume / 100))
                                     height: parent.height; radius: 2
-                                    color: bar.store.audio.muted ? Theme.muted : (bar.themeStore ? bar.themeStore.accentColor : Theme.accent)
-                                    Behavior on width { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+                                    color: bar.store.audio.muted ? Pal.Palette.muted : (bar.themeStore ? bar.themeStore.accentColor : Pal.Palette.accent)
+                                    Behavior on width { NumberAnimation { duration: Theme.dur(200); easing.type: Easing.OutCubic } }
                                 }
                             }
                         }
@@ -488,8 +501,8 @@ PanelWindow {
                             }
                             Text {
                                 text: bar.store.battery.percent + "%"
-                                color: Theme.text
-                                font.pixelSize: 11
+                                color: Pal.Palette.text
+                                font.pixelSize: Theme.fs(11)
                                 font.family: "JetBrains Mono"
                                 anchors.verticalCenter: parent.verticalCenter
                             }
@@ -510,7 +523,7 @@ PanelWindow {
                 // instead. Right click opens the menu when there is one, or runs the secondary action.
                 Rectangle {
                     id: trayZone
-                    visible: SystemTray.items.values.length > 0
+                    visible: (bar.themeStore ? bar.themeStore.showTray : true) && SystemTray.items.values.length > 0
                     implicitWidth: trayRow.childrenRect.width + 14
                     implicitHeight: bar.height - 8
                     radius: 8
@@ -571,23 +584,23 @@ PanelWindow {
                     radius: 16
                     anchors.verticalCenter: parent.verticalCenter
                     color: setMA.containsMouse || bar.settingsOpen
-                           ? (bar.themeStore ? Qt.rgba(0.2, 0.4, 0.5, 0.45) : "#33c8f7ef")
+                           ? (bar.themeStore ? Qt.rgba(0.2, 0.4, 0.5, 0.45) : Qt.rgba(Pal.Palette.accent.r, Pal.Palette.accent.g, Pal.Palette.accent.b, 0.2))
                            : "#18ffffff"
                     border.color: setMA.containsMouse || bar.settingsOpen
-                                  ? (bar.themeStore ? bar.themeStore.accentColor : Theme.accent)
+                                  ? (bar.themeStore ? bar.themeStore.accentColor : Pal.Palette.accent)
                                   : "#33ffffff"
                     border.width: 1.5
                     scale: setMA.containsMouse ? 1.08 : 1.0
-                    Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutBack } }
-                    Behavior on color { ColorAnimation { duration: 150 } }
-                    Behavior on border.color { ColorAnimation { duration: 150 } }
+                    Behavior on scale { NumberAnimation { duration: Theme.dur(150); easing.type: Easing.OutBack } }
+                    Behavior on color { ColorAnimation { duration: Theme.dur(150) } }
+                    Behavior on border.color { ColorAnimation { duration: Theme.dur(150) } }
 
                     C.Icon {
                         anchors.centerIn: parent
                         width: 18; height: 18
                         kind: "gear"
                         tint: setMA.containsMouse || bar.settingsOpen
-                              ? (bar.themeStore ? bar.themeStore.accentColor : Theme.accent)
+                              ? (bar.themeStore ? bar.themeStore.accentColor : Pal.Palette.accent)
                               : "#ffffff"
                     }
 
@@ -609,13 +622,13 @@ PanelWindow {
                     border.color: pwrMA.containsMouse || bar.powerOpen ? "#66e94560" : "transparent"
                     border.width: 1
                     anchors.verticalCenter: parent.verticalCenter
-                    Behavior on color { ColorAnimation { duration: 150 } }
+                    Behavior on color { ColorAnimation { duration: Theme.dur(150) } }
 
                     C.Icon {
                         anchors.centerIn: parent
                         width: 14; height: 14
                         kind: "power"
-                        tint: pwrMA.containsMouse || bar.powerOpen ? "#f0708a" : (bar.themeStore ? bar.themeStore.accentColor : Theme.accent)
+                        tint: pwrMA.containsMouse || bar.powerOpen ? "#f0708a" : (bar.themeStore ? bar.themeStore.accentColor : Pal.Palette.accent)
                     }
 
                     MouseArea {

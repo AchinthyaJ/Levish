@@ -3,13 +3,14 @@
 import QtQuick
 import "../common" as C
 import "../common/Theme.js" as Theme
+import "../common" as Pal
 
 Item {
     id: batt
     property real level: 0          // 0..100
     property bool charging: false
     readonly property bool low: !charging && level <= 20
-    readonly property string stateColor: charging ? "#86efac" : (low ? "#e94560" : Theme.text)
+    readonly property string stateColor: charging ? "#86efac" : (low ? "#e94560" : Pal.Palette.text)
 
     implicitWidth: 28
     implicitHeight: 18
@@ -23,7 +24,7 @@ Item {
         color: "transparent"
         border.width: 1.5
         border.color: (batt.charging || batt.low) ? batt.stateColor : "#b8c6d8"
-        Behavior on border.color { ColorAnimation { duration: 250 } }
+        Behavior on border.color { ColorAnimation { duration: Theme.dur(250) } }
 
         // Level fill, inset so it sits inside the outline.
         Rectangle {
@@ -32,8 +33,8 @@ Item {
             width: (body.width - 5) * Math.max(0, Math.min(100, batt.level)) / 100
             radius: 1.5
             color: batt.stateColor
-            Behavior on width { NumberAnimation { duration: 500; easing.type: Easing.OutCubic } }
-            Behavior on color { ColorAnimation { duration: 250 } }
+            Behavior on width { NumberAnimation { duration: Theme.dur(500); easing.type: Easing.OutCubic } }
+            Behavior on color { ColorAnimation { duration: Theme.dur(250) } }
         }
 
         C.Icon {
@@ -51,6 +52,6 @@ Item {
         width: 2; height: 5; radius: 1
         anchors.verticalCenter: parent.verticalCenter
         color: body.border.color
-        Behavior on color { ColorAnimation { duration: 250 } }
+        Behavior on color { ColorAnimation { duration: Theme.dur(250) } }
     }
 }

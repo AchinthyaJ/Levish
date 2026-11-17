@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import "../../common" as C
 import "../../common/Theme.js" as Theme
+import "../../common" as Pal
 
 Rectangle {
     id: root
@@ -45,7 +46,7 @@ Rectangle {
             Layout.preferredWidth: Math.round(16 * root.screenScale)
             Layout.preferredHeight: Math.round(16 * root.screenScale)
             kind: root.iconKind
-            tint: root.themeStore ? root.themeStore.accentColor : "#c8f7ef"
+            tint: root.themeStore ? root.themeStore.accentColor : Pal.Palette.accent
         }
 
         Text {

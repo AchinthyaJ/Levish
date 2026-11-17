@@ -10,6 +10,7 @@ Flickable {
     property var themeStore
     property var session               // SessionTools
     property string pageId: ""
+    ScrollBar.vertical: PageScrollBar { accent: page.themeStore.accentColor }
     property string keywords: "night light nightlight warm colour color temperature hyprsunset caffeine keep awake screen sleep idle inhibit"
     readonly property var resetPaths: ["nightlight.enabled", "nightlight.temperature"]
     readonly property color accent: themeStore.accentColor

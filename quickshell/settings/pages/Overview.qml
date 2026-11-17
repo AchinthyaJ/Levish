@@ -5,6 +5,7 @@ import Quickshell.Io
 import "../../common/Theme.js" as Theme
 import "../../common/Version.js" as Version
 import "../components"
+import "../../common" as Pal
 
 // Overview dashboard: a visual summary of the live desktop. Every value comes from the config
 // service or a real runtime check. Nothing is invented.
@@ -12,6 +13,7 @@ Flickable {
     id: page
     property var themeStore
     property string pageId: ""
+    ScrollBar.vertical: PageScrollBar { accent: page.themeStore.accentColor }
     property string keywords: "overview summary status health configuration dashboard recent changes"
     readonly property var resetPaths: []
     readonly property color accent: themeStore.accentColor
@@ -34,20 +36,20 @@ Flickable {
         property string caption: ""
         property string value: ""
         property string detail: ""
-        property color valueColor: Theme.textPrimary
+        property color valueColor: Pal.Palette.textPrimary
         width: 200
         implicitHeight: tileCol.implicitHeight + 28
         radius: Theme.radiusCardSet
-        color: Theme.surface
-        border.color: Theme.surfaceEdge
+        color: Pal.Palette.surface
+        border.color: Pal.Palette.surfaceEdge
         border.width: 1
         ColumnLayout {
             id: tileCol
             anchors { left: parent.left; right: parent.right; top: parent.top; margins: 14 }
             spacing: 4
-            Text { text: caption.toUpperCase(); color: Theme.muted; font.pixelSize: Theme.fontCaption; font.weight: Font.DemiBold; font.letterSpacing: 1.1 }
+            Text { text: caption.toUpperCase(); color: Pal.Palette.muted; font.pixelSize: Theme.fontCaption; font.weight: Font.DemiBold; font.letterSpacing: 1.1 }
             Text { Layout.fillWidth: true; text: value; color: valueColor; font.pixelSize: Theme.fontTitle; font.weight: Font.DemiBold; elide: Text.ElideRight }
-            Text { Layout.fillWidth: true; text: detail; color: Theme.textSecondary; font.pixelSize: Theme.fontSmall; wrapMode: Text.Wrap }
+            Text { Layout.fillWidth: true; text: detail; color: Pal.Palette.textSecondary; font.pixelSize: Theme.fontSmall; wrapMode: Text.Wrap }
         }
     }
 
@@ -69,12 +71,12 @@ Flickable {
             ColumnLayout {
                 Layout.fillWidth: true
                 spacing: 2
-                Text { text: "Desktop configuration"; color: Theme.textPrimary; font.pixelSize: Theme.fontPage; font.weight: Font.DemiBold }
+                Text { text: "Desktop configuration"; color: Pal.Palette.textPrimary; font.pixelSize: Theme.fontPage; font.weight: Font.DemiBold }
                 Text {
                     text: "Accent " + page.themeStore.accentColor.toUpperCase()
                         + "  ·  glass " + Math.round(page.themeStore.glassOpacity * 100) + "%"
                         + "  ·  " + page.themeStore.fontFamily
-                    color: Theme.muted; font.pixelSize: Theme.fontSmall
+                    color: Pal.Palette.muted; font.pixelSize: Theme.fontSmall
                 }
             }
         }
@@ -91,7 +93,7 @@ Flickable {
                 id: banner
                 anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter; margins: 12 }
                 text: page.themeStore.statusDetail
-                color: Theme.textPrimary
+                color: Pal.Palette.textPrimary
                 font.pixelSize: Theme.fontSmall
                 wrapMode: Text.Wrap
             }
@@ -109,7 +111,7 @@ Flickable {
             Tile {
                 caption: "Dock"
                 value: page.themeStore.dockEnabled ? "Shown" : "Hidden"
-                valueColor: page.themeStore.dockEnabled ? Theme.textPrimary : Theme.muted
+                valueColor: page.themeStore.dockEnabled ? Pal.Palette.textPrimary : Pal.Palette.muted
                 detail: (page.themeStore.dockAutoHide ? "Auto-hide on" : "Always visible") + ", icons " + page.themeStore.dockIconSize + " px"
             }
             Tile {
@@ -132,8 +134,8 @@ Flickable {
             Rectangle {
                 width: 320; height: 180
                 radius: Theme.radiusCardSet
-                color: Theme.sidebarBg
-                border.color: Theme.surfaceEdge
+                color: Pal.Palette.sidebar
+                border.color: Pal.Palette.surfaceEdge
                 clip: true
                 Image {
                     id: preview
@@ -149,19 +151,19 @@ Flickable {
                     visible: preview.status !== Image.Ready
                     anchors.centerIn: parent
                     text: preview.status === Image.Error ? "Wallpaper could not be loaded" : "No wallpaper selected"
-                    color: Theme.muted
+                    color: Pal.Palette.muted
                     font.pixelSize: Theme.fontSmall
                 }
                 Rectangle {
                     anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
                     height: 34
-                    color: Theme.windowBg
+                    color: Pal.Palette.window
                     opacity: 0.85
                     Text {
                         anchors { left: parent.left; verticalCenter: parent.verticalCenter; leftMargin: 12 }
                         text: (page.themeStore.wallpaperPath ? page.themeStore.wallpaperPath.split("/").pop() : "Default")
                               + "  ·  " + page.themeStore.wallpaperFit
-                        color: Theme.textSecondary
+                        color: Pal.Palette.textSecondary
                         font.pixelSize: Theme.fontSmall
                         elide: Text.ElideMiddle
                         width: parent.width - 24
@@ -172,12 +174,12 @@ Flickable {
             Rectangle {
                 width: 320; height: 180
                 radius: Theme.radiusCardSet
-                color: Theme.surface
-                border.color: Theme.surfaceEdge
+                color: Pal.Palette.surface
+                border.color: Pal.Palette.surfaceEdge
                 ColumnLayout {
                     anchors { fill: parent; margins: 14 }
                     spacing: Theme.space2
-                    Text { text: "ACCENT"; color: Theme.muted; font.pixelSize: Theme.fontCaption; font.weight: Font.DemiBold; font.letterSpacing: 1.1 }
+                    Text { text: "ACCENT"; color: Pal.Palette.muted; font.pixelSize: Theme.fontCaption; font.weight: Font.DemiBold; font.letterSpacing: 1.1 }
                     Flow {
                         Layout.fillWidth: true
                         spacing: Theme.space2
@@ -189,7 +191,7 @@ Flickable {
                                 width: 34; height: 34; radius: 17
                                 color: modelData.hex
                                 border.width: chosen ? 2 : 1
-                                border.color: chosen ? Theme.textPrimary : Theme.controlEdge
+                                border.color: chosen ? Pal.Palette.textPrimary : Pal.Palette.controlEdge
                                 ToolTip.visible: swMa.containsMouse
                                 ToolTip.text: modelData.name
                                 MouseArea {
@@ -205,7 +207,7 @@ Flickable {
                     Text {
                         Layout.fillWidth: true
                         text: "Click a swatch to change the accent. Applies to the bar, dock and Settings."
-                        color: Theme.textSecondary
+                        color: Pal.Palette.textSecondary
                         font.pixelSize: Theme.fontSmall
                         wrapMode: Text.Wrap
                     }
@@ -219,11 +221,11 @@ Flickable {
         SettingsCard {
             title: "System integration"
             SettingsRow { label: "Levish backend"; hint: "Metrics, network, audio and power services"
-                Text { text: page.backendRunning ? "Running" : "Not running"; color: page.backendRunning ? Theme.ok : Theme.warning; font.pixelSize: Theme.fontSmall } }
+                Text { text: page.backendRunning ? "Running" : "Not running"; color: page.backendRunning ? Pal.Palette.ok : Pal.Palette.warning; font.pixelSize: Theme.fontSmall } }
             SettingsRow { label: "Settings file"; hint: page.themeStore.configPath
                 Text {
                     text: page.themeStore.status === "ok" ? "Valid" : (page.themeStore.status === "missing" ? "Not created yet" : "Needs attention")
-                    color: page.themeStore.status === "ok" ? Theme.ok : Theme.danger
+                    color: page.themeStore.status === "ok" ? Pal.Palette.ok : Pal.Palette.danger
                     font.pixelSize: Theme.fontSmall
                 } }
         }
@@ -234,7 +236,7 @@ Flickable {
             Text {
                 visible: page.themeStore.recentChanges.length === 0
                 text: "No changes yet this session. Changes you make in Settings appear here until the shell restarts."
-                color: Theme.muted
+                color: Pal.Palette.muted
                 font.pixelSize: Theme.fontSmall
                 wrapMode: Text.Wrap
                 width: parent.width
@@ -245,7 +247,7 @@ Flickable {
                     required property var modelData
                     label: modelData.path
                     hint: modelData.time
-                    Text { text: modelData.value; color: Theme.textSecondary; font.pixelSize: Theme.fontSmall; elide: Text.ElideRight; Layout.maximumWidth: 200 }
+                    Text { text: modelData.value; color: Pal.Palette.textSecondary; font.pixelSize: Theme.fontSmall; elide: Text.ElideRight; Layout.maximumWidth: 200 }
                 }
             }
         }
@@ -267,7 +269,7 @@ Flickable {
         Text {
             Layout.fillWidth: true
             text: "Levish " + Version.version + ". See About for runtime details."
-            color: Theme.muted
+            color: Pal.Palette.muted
             font.pixelSize: Theme.fontCaption
             wrapMode: Text.Wrap
         }

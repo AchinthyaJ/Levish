@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import "../../common" as C
 import "../../common/Theme.js" as Theme
+import "../../common" as Pal
 
 ColumnLayout {
     id: root
@@ -14,7 +15,7 @@ ColumnLayout {
     readonly property bool is12Hour: (themeStore ? themeStore.lockClockFormat : "HH:mm").indexOf("AP") >= 0 || (themeStore ? themeStore.lockClockFormat : "HH:mm").indexOf("ap") >= 0
     readonly property bool showSeconds: themeStore ? themeStore.lockShowSeconds : false
     readonly property string family: themeStore ? themeStore.fontFamily : "JetBrains Mono"
-    readonly property color accent: themeStore ? themeStore.accentColor : "#c8f7ef"
+    readonly property color accent: themeStore ? themeStore.accentColor : Pal.Palette.accent
 
     property date now: new Date()
 
@@ -56,8 +57,8 @@ ColumnLayout {
             SequentialAnimation on opacity {
                 running: !(root.themeStore && root.themeStore.lockReducedMotion)
                 loops: Animation.Infinite
-                NumberAnimation { to: 0.35; duration: 1000; easing.type: Easing.InOutQuad }
-                NumberAnimation { to: 1.0; duration: 1000; easing.type: Easing.InOutQuad }
+                NumberAnimation { to: 0.35; duration: Theme.dur(1000); easing.type: Easing.InOutQuad }
+                NumberAnimation { to: 1.0; duration: Theme.dur(1000); easing.type: Easing.InOutQuad }
             }
         }
 

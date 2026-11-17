@@ -1,4 +1,5 @@
 import QtQuick
+import "Theme.js" as Theme
 
 // Circular gauge: a full neutral track with only the usage arc colored.
 // The arc eases to its new value, so changes sweep instead of jumping.
@@ -14,7 +15,7 @@ Item {
     implicitHeight: 64
 
     property real shown: value
-    Behavior on shown { NumberAnimation { duration: 700; easing.type: Easing.OutCubic } }
+    Behavior on shown { NumberAnimation { duration: Theme.dur(700); easing.type: Easing.OutCubic } }
     onShownChanged: canvas.requestPaint()
 
     Canvas {
@@ -42,11 +43,11 @@ Item {
         Text {
             anchors.horizontalCenter: parent.horizontalCenter
             text: ring.label; color: "#f5f9fd"
-            font.family: "JetBrains Mono"; font.pixelSize: 13; font.weight: Font.DemiBold
+            font.family: "JetBrains Mono"; font.pixelSize: Theme.fs(13); font.weight: Font.DemiBold
         }
         Text {
             anchors.horizontalCenter: parent.horizontalCenter
-            text: ring.caption; color: "#9fb0c6"; font.pixelSize: 9
+            text: ring.caption; color: "#9fb0c6"; font.pixelSize: Theme.fs(9)
             visible: ring.caption !== ""
         }
     }

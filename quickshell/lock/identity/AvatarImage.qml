@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import "../../common" as C
 import "../../common/Theme.js" as Theme
+import "../../common" as Pal
 
 Item {
     id: root
@@ -29,7 +30,7 @@ Item {
         anchors.fill: parent
         radius: width / 2
         color: "transparent"
-        border.color: root.themeStore ? root.themeStore.accentColor : "#c8f7ef"
+        border.color: root.themeStore ? root.themeStore.accentColor : Pal.Palette.accent
         border.width: 1.5
         opacity: 0.75
     }
@@ -69,7 +70,7 @@ Item {
                 Text {
                     anchors.centerIn: parent
                     text: root.username !== "" ? root.username.charAt(0).toUpperCase() : "U"
-                    color: root.themeStore ? root.themeStore.accentColor : "#c8f7ef"
+                    color: root.themeStore ? root.themeStore.accentColor : Pal.Palette.accent
                     font.family: root.themeStore ? root.themeStore.fontFamily : "JetBrains Mono"
                     font.pixelSize: Math.round(root.size * 0.42)
                     font.weight: Font.Bold

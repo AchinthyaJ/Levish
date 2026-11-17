@@ -7,6 +7,7 @@ import Quickshell
 import Quickshell.Wayland
 import Quickshell.Services.Notifications
 import "../common/Theme.js" as Theme
+import "../common" as Pal
 
 PanelWindow {
     id: win
@@ -47,8 +48,8 @@ PanelWindow {
                 width: 356
                 implicitHeight: body.implicitHeight + 24
                 radius: 16
-                color: Theme.glass
-                border.color: critical ? Theme.danger : Theme.glassEdge
+                color: Pal.Palette.glass
+                border.color: critical ? Pal.Palette.danger : Pal.Palette.glassEdge
                 border.width: 1
 
                 // Expiry. Hovering pauses it, so a notification you are reading does not vanish.
@@ -84,15 +85,15 @@ PanelWindow {
                         Text {
                             Layout.fillWidth: true
                             text: card.n.appName || card.n.desktopEntry || "Application"
-                            color: Theme.muted
+                            color: Pal.Palette.muted
                             font.pixelSize: Theme.fontCaption
                             font.weight: Font.DemiBold
                             elide: Text.ElideRight
                         }
                         Rectangle {
                             width: 20; height: 20; radius: 10
-                            color: closeMa.containsMouse ? Theme.surfaceHover : "transparent"
-                            Text { anchors.centerIn: parent; text: "×"; color: Theme.textSecondary; font.pixelSize: 14 }
+                            color: closeMa.containsMouse ? Pal.Palette.surfaceHover : "transparent"
+                            Text { anchors.centerIn: parent; text: "×"; color: Pal.Palette.textSecondary; font.pixelSize: Theme.fs(14) }
                             MouseArea {
                                 id: closeMa
                                 anchors.fill: parent
@@ -106,7 +107,7 @@ PanelWindow {
                     Text {
                         Layout.fillWidth: true
                         text: card.n.summary
-                        color: Theme.textPrimary
+                        color: Pal.Palette.textPrimary
                         font.pixelSize: Theme.fontBody
                         font.weight: Font.DemiBold
                         wrapMode: Text.Wrap
@@ -119,7 +120,7 @@ PanelWindow {
                         visible: text !== ""
                         Layout.fillWidth: true
                         text: card.n.body
-                        color: Theme.textSecondary
+                        color: Pal.Palette.textSecondary
                         font.pixelSize: Theme.fontSmall
                         wrapMode: Text.Wrap
                         maximumLineCount: 3
@@ -138,13 +139,13 @@ PanelWindow {
                                 height: 26
                                 width: actionText.implicitWidth + 20
                                 radius: 8
-                                color: actionMa.containsMouse ? Theme.surfaceHover : Theme.controlFill
-                                border.color: Theme.controlEdge
+                                color: actionMa.containsMouse ? Pal.Palette.surfaceHover : Pal.Palette.controlFill
+                                border.color: Pal.Palette.controlEdge
                                 Text {
                                     id: actionText
                                     anchors.centerIn: parent
                                     text: modelData.text
-                                    color: Theme.textPrimary
+                                    color: Pal.Palette.textPrimary
                                     font.pixelSize: Theme.fontSmall
                                 }
                                 MouseArea {

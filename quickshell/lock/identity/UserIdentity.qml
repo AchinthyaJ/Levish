@@ -4,6 +4,7 @@ import Quickshell
 import Quickshell.Io
 import "../../common" as C
 import "../../common/Theme.js" as Theme
+import "../../common" as Pal
 
 ColumnLayout {
     id: root
@@ -71,7 +72,7 @@ ColumnLayout {
             visible: (root.themeStore ? root.themeStore.lockShowGreeting : true) && !(root.themeStore && root.themeStore.lockHideUserDetails)
             Layout.alignment: root.alignment
             text: root.greeting + ","
-            color: root.themeStore ? root.themeStore.accentColor : "#c8f7ef"
+            color: root.themeStore ? root.themeStore.accentColor : Pal.Palette.accent
             font.family: root.themeStore ? root.themeStore.fontFamily : "JetBrains Mono"
             font.pixelSize: Math.round(14 * root.screenScale)
             font.weight: Font.DemiBold

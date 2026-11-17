@@ -4,6 +4,7 @@ import QtQuick
 import QtQuick.Layouts
 import "../common" as C
 import "../common/Theme.js" as Theme
+import "../common" as Pal
 
 RowLayout {
     id: row
@@ -11,7 +12,7 @@ RowLayout {
     property string title: ""
     property string subtitle: ""
     property bool checked: false
-    property color iconColor: Theme.accent   // icon: an Icon kind name, e.g. "wifi"
+    property color iconColor: Pal.Palette.accent   // icon: an Icon kind name, e.g. "wifi"
     signal toggled()
 
     spacing: 12
@@ -20,7 +21,7 @@ RowLayout {
     // Icon glyph
     C.Icon {
         kind: row.icon
-        tint: row.checked ? row.iconColor : Theme.muted
+        tint: row.checked ? row.iconColor : Pal.Palette.muted
         width: 20; height: 20
         Layout.preferredWidth: 20
     }
@@ -31,13 +32,13 @@ RowLayout {
         spacing: 1
         Text {
             text: row.title
-            color: Theme.text
-            font.pixelSize: 13; font.weight: Font.Medium
+            color: Pal.Palette.text
+            font.pixelSize: Theme.fs(13); font.weight: Font.Medium
         }
         Text {
             text: row.subtitle
-            color: Theme.muted
-            font.pixelSize: 10
+            color: Pal.Palette.muted
+            font.pixelSize: Theme.fs(10)
             visible: row.subtitle !== ""
             elide: Text.ElideRight
             Layout.fillWidth: true
@@ -49,8 +50,8 @@ RowLayout {
         id: pill
         implicitWidth: 42; implicitHeight: 24
         radius: 12
-        color: row.checked ? Theme.accent : "#33ffffff"
-        Behavior on color { ColorAnimation { duration: 200 } }
+        color: row.checked ? Pal.Palette.accent : "#33ffffff"
+        Behavior on color { ColorAnimation { duration: Theme.dur(200) } }
         border.color: row.checked ? "transparent" : "#22ffffff"
         border.width: 1
 
@@ -59,9 +60,9 @@ RowLayout {
             width: 18; height: 18; radius: 9
             anchors.verticalCenter: parent.verticalCenter
             x: row.checked ? parent.width - width - 3 : 3
-            color: row.checked ? Theme.solidPanel : Theme.text
-            Behavior on x { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
-            Behavior on color { ColorAnimation { duration: 200 } }
+            color: row.checked ? Theme.solidPanel : Pal.Palette.text
+            Behavior on x { NumberAnimation { duration: Theme.dur(220); easing.type: Easing.OutCubic } }
+            Behavior on color { ColorAnimation { duration: Theme.dur(200) } }
         }
 
         MouseArea {

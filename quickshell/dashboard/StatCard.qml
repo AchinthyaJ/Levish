@@ -4,6 +4,7 @@ import QtQuick
 import QtQuick.Layouts
 import "../common" as C
 import "../common/Theme.js" as Theme
+import "../common" as Pal
 
 Card {
     id: card
@@ -11,7 +12,7 @@ Card {
     property string label: ""     // otherwise this text is shown in the ring
     property string title: ""
     property string subtitle: ""
-    property color tint: Theme.cpu
+    property color tint: Pal.Palette.accent
     property real value: 0
     property var temp: null
     implicitHeight: 118
@@ -38,18 +39,18 @@ Card {
                     anchors.centerIn: parent
                     visible: card.kind === ""
                     text: card.label; color: card.tint
-                    font.pixelSize: 10; font.weight: Font.Bold; font.letterSpacing: 0.6
+                    font.pixelSize: Theme.fs(10); font.weight: Font.Bold; font.letterSpacing: 0.6
                 }
             }
             ColumnLayout {
                 Layout.fillWidth: true
                 spacing: 0
-                Text { text: card.title; color: Theme.text; font.pixelSize: 15; font.weight: Font.DemiBold }
-                Text { text: card.subtitle; color: Theme.muted; font.pixelSize: 10; elide: Text.ElideRight; Layout.fillWidth: true }
+                Text { text: card.title; color: Pal.Palette.text; font.pixelSize: Theme.fs(15); font.weight: Font.DemiBold }
+                Text { text: card.subtitle; color: Pal.Palette.muted; font.pixelSize: Theme.fs(10); elide: Text.ElideRight; Layout.fillWidth: true }
             }
             ColumnLayout {
                 spacing: 1
-                Text { text: "Usage"; color: Theme.muted; font.pixelSize: 9; Layout.alignment: Qt.AlignRight }
+                Text { text: "Usage"; color: Pal.Palette.muted; font.pixelSize: Theme.fs(9); Layout.alignment: Qt.AlignRight }
                 Rectangle {
                     Layout.alignment: Qt.AlignRight
                     implicitWidth: badgeText.implicitWidth + 20
@@ -61,7 +62,7 @@ Card {
                         anchors.centerIn: parent
                         text: Math.round(card.value) + "%"
                         color: card.tint
-                        font.family: "JetBrains Mono"; font.pixelSize: 14; font.weight: Font.Bold
+                        font.family: "JetBrains Mono"; font.pixelSize: Theme.fs(14); font.weight: Font.Bold
                     }
                 }
             }
@@ -71,19 +72,19 @@ Card {
             spacing: 8
             Text {
                 text: (card.temp === null ? "--" : Math.round(card.temp) + "°C")
-                color: Theme.muted; font.pixelSize: 10; font.family: "JetBrains Mono"
+                color: Pal.Palette.muted; font.pixelSize: Theme.fs(10); font.family: "JetBrains Mono"
             }
             // Thin usage track: 3px, neutral, the fill carries the accent.
             Rectangle {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 3
                 radius: 2
-                color: Theme.track
+                color: Pal.Palette.track
                 Rectangle {
                     width: parent.width * Math.min(1, card.value / 100)
                     height: parent.height; radius: 2
                     color: card.tint
-                    Behavior on width { NumberAnimation { duration: 600; easing.type: Easing.OutCubic } }
+                    Behavior on width { NumberAnimation { duration: Theme.dur(600); easing.type: Easing.OutCubic } }
                 }
             }
         }

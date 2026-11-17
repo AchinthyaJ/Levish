@@ -101,3 +101,10 @@ var radiusCardSet = 14
 // Motion (milliseconds). Reduced motion sets these to 0 in code that reads them.
 var durationFast = 120
 var durationBase = 180
+// Scale for short UI animations. ThemeStore sets it to 0 when reduced motion is on.
+var motionScale = 1.0
+// Duration in ms for a short animation, honouring reduced motion. Use for literal durations.
+function dur(ms) { return Math.round(ms * motionScale) }
+// Text size scale from theme.font_scale. Applied to literal pixel sizes via fs(px).
+var fontScale = 1.0
+function fs(px) { return Math.round(px * fontScale * 10) / 10 }

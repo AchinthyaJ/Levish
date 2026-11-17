@@ -2,6 +2,7 @@
 // so dragging does not rewrite config.json on every pixel.
 import QtQuick
 import "../../common/Theme.js" as Theme
+import "../../common" as Pal
 
 Item {
     id: s
@@ -9,7 +10,7 @@ Item {
     property real to: 100
     property real step: 1
     property real value: 0
-    property color accent: Theme.accent
+    property color accent: Pal.Palette.accent
     property string suffix: ""
     property int decimals: 0
     signal committed(real value)
@@ -31,7 +32,7 @@ Item {
         id: track
         anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter }
         height: 4; radius: 2
-        color: Theme.controlEdge
+        color: Pal.Palette.controlEdge
         Rectangle {
             width: parent.width * s.frac
             height: parent.height; radius: 2
@@ -40,7 +41,7 @@ Item {
     }
     Rectangle {
         width: 14; height: 14; radius: 7
-        color: Theme.textPrimary
+        color: Pal.Palette.textPrimary
         x: track.width * s.frac - width / 2
         anchors.verticalCenter: parent.verticalCenter
     }
@@ -48,8 +49,8 @@ Item {
     Text {
         anchors { right: parent.right; top: parent.bottom; topMargin: 2 }
         text: s.display(s.live) + s.suffix
-        color: Theme.muted
-        font.pixelSize: 10
+        color: Pal.Palette.muted
+        font.pixelSize: Theme.fs(10)
     }
 
     MouseArea {

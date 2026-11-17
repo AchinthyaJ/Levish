@@ -6,6 +6,7 @@ import Quickshell
 import Quickshell.Wayland
 import "../common" as C
 import "../common/Theme.js" as Theme
+import "../common" as Pal
 
 PanelWindow {
     id: panel
@@ -37,7 +38,7 @@ PanelWindow {
         id: body
         anchors.fill: parent
         opacity: panel.open ? 1 : 0
-        Behavior on opacity { NumberAnimation { duration: 240; easing.type: Easing.OutCubic } }
+        Behavior on opacity { NumberAnimation { duration: Theme.dur(240); easing.type: Easing.OutCubic } }
 
         // Grow from the island: start narrow (island width) and short, scale up to full size.
         transform: Scale {
@@ -45,16 +46,16 @@ PanelWindow {
             origin.y: 0
             xScale: panel.open ? 1 : Math.max(0.2, panel.anchorWidth / (panel.bodyW + 2 * panel.flt))
             yScale: panel.open ? 1 : 0.3
-            Behavior on xScale { NumberAnimation { duration: 320; easing.type: Easing.OutCubic } }
-            Behavior on yScale { NumberAnimation { duration: 320; easing.type: Easing.OutCubic } }
+            Behavior on xScale { NumberAnimation { duration: Theme.dur(320); easing.type: Easing.OutCubic } }
+            Behavior on yScale { NumberAnimation { duration: Theme.dur(320); easing.type: Easing.OutCubic } }
         }
 
         C.DropShape {
             anchors.fill: parent
             fillet: panel.flt
             radius: Theme.dropRadius
-            fillColor: Theme.glass
-            edgeColor: Theme.glassEdge
+            fillColor: Pal.Palette.glass
+            edgeColor: Pal.Palette.glassEdge
         }
 
         // The whole panel is one hover target, so moving within it never closes it.
@@ -73,7 +74,7 @@ PanelWindow {
                 StatCard {
                     Layout.fillWidth: true
                     kind: "cpu"; title: "CPU"; subtitle: panel.store.cpuModel
-                    tint: Theme.cpu
+                    tint: Pal.Palette.accent
                     value: panel.store.metrics.cpu_percent
                     temp: panel.store.metrics.cpu_temp
                 }
@@ -81,7 +82,7 @@ PanelWindow {
                     Layout.fillWidth: true
                     label: "GPU"; title: "GPU"
                     subtitle: panel.store.metrics.gpu_percent === null ? "No GPU data" : "Graphics"
-                    tint: Theme.gpu
+                    tint: Pal.Palette.accent
                     value: panel.store.metrics.gpu_percent === null ? 0 : panel.store.metrics.gpu_percent
                     temp: panel.store.metrics.gpu_temp
                 }
@@ -102,14 +103,14 @@ PanelWindow {
                         C.Ring {
                             Layout.preferredWidth: 84; Layout.preferredHeight: 84
                             value: parseFloat(panel.store.disk) || 0
-                            arcColor: Theme.storage
+                            arcColor: Pal.Palette.accent
                             label: Math.round(parseFloat(panel.store.disk) || 0) + "%"
                             caption: "Used"
                         }
                         ColumnLayout {
                             Layout.fillWidth: true
-                            Text { text: "Storage"; color: Theme.text; font.pixelSize: 12; font.weight: Font.DemiBold }
-                            Text { text: panel.store.diskText; color: Theme.muted; font.pixelSize: 10; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+                            Text { text: "Storage"; color: Pal.Palette.text; font.pixelSize: Theme.fs(12); font.weight: Font.DemiBold }
+                            Text { text: panel.store.diskText; color: Pal.Palette.muted; font.pixelSize: Theme.fs(10); wrapMode: Text.WordWrap; Layout.fillWidth: true }
                         }
                     }
                 }
@@ -123,8 +124,8 @@ PanelWindow {
                         spacing: 4
                         RowLayout {
                             spacing: 6
-                            C.Icon { kind: "down"; tint: Theme.network; width: 14; height: 14 }
-                            Text { text: "Network"; color: Theme.network; font.pixelSize: 12; font.weight: Font.DemiBold }
+                            C.Icon { kind: "down"; tint: Pal.Palette.accent; width: 14; height: 14 }
+                            Text { text: "Network"; color: Pal.Palette.accent; font.pixelSize: Theme.fs(12); font.weight: Font.DemiBold }
                         }
                         NetGraph {
                             Layout.fillWidth: true
@@ -148,28 +149,28 @@ PanelWindow {
                             Rectangle {
                                 width: ramTag.implicitWidth + 10; height: 16; radius: 5
                                 color: "transparent"
-                                border.color: Theme.memory; border.width: 1
+                                border.color: Pal.Palette.accent; border.width: 1
                                 Text {
                                     id: ramTag
                                     anchors.centerIn: parent
-                                    text: "RAM"; color: Theme.memory
-                                    font.pixelSize: 9; font.weight: Font.Bold; font.letterSpacing: 0.6
+                                    text: "RAM"; color: Pal.Palette.accent
+                                    font.pixelSize: Theme.fs(9); font.weight: Font.Bold; font.letterSpacing: 0.6
                                 }
                             }
-                            Text { text: "Memory"; color: Theme.text; font.pixelSize: 12; font.weight: Font.DemiBold }
+                            Text { text: "Memory"; color: Pal.Palette.text; font.pixelSize: Theme.fs(12); font.weight: Font.DemiBold }
                         }
                         C.Ring {
                             Layout.alignment: Qt.AlignHCenter
                             Layout.preferredWidth: 78; Layout.preferredHeight: 78
                             value: panel.store.metrics.ram_percent
-                            arcColor: Theme.memory
+                            arcColor: Pal.Palette.accent
                             label: Math.round(panel.store.metrics.ram_percent) + "%"
                             caption: "Used"
                         }
                         Text {
                             Layout.alignment: Qt.AlignHCenter
                             text: panel.store.metrics.ram_used_gb.toFixed(1) + " / " + panel.store.metrics.ram_total_gb.toFixed(1) + " GB"
-                            color: Theme.muted; font.pixelSize: 10
+                            color: Pal.Palette.muted; font.pixelSize: Theme.fs(10)
                         }
                     }
                 }

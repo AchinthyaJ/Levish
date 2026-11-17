@@ -1,6 +1,7 @@
 // Plain or danger button used for page actions.
 import QtQuick
 import "../../common/Theme.js" as Theme
+import "../../common" as Pal
 
 Rectangle {
     id: b
@@ -10,16 +11,16 @@ Rectangle {
 
     implicitWidth: label.implicitWidth + 28
     height: 30; radius: 9
-    color: ma.containsMouse ? (danger ? Theme.dangerEdge : Theme.controlEdge) : Theme.controlFill
-    border.color: danger ? Theme.dangerEdge : Theme.controlEdge
+    color: ma.containsMouse ? (danger ? Theme.dangerEdge : Pal.Palette.controlEdge) : Pal.Palette.controlFill
+    border.color: danger ? Theme.dangerEdge : Pal.Palette.controlEdge
     border.width: 1
 
     Text {
         id: label
         anchors.centerIn: parent
         text: b.text
-        color: b.danger ? Theme.danger : Theme.text
-        font.pixelSize: 12
+        color: b.danger ? Pal.Palette.danger : Pal.Palette.text
+        font.pixelSize: Theme.fs(12)
         font.weight: Font.Medium
     }
     MouseArea {

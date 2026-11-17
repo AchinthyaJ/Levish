@@ -8,9 +8,12 @@ Flickable {
     id: page
     property var themeStore
     property string pageId: ""
+    ScrollBar.vertical: PageScrollBar { accent: page.themeStore.accentColor }
     property string keywords: "bar height clock 24 hour 12 seconds date gpu temperature workspace dots width radius"
     readonly property var resetPaths: ["bar.height", "bar.clock_format", "bar.show_date", "bar.show_seconds",
-        "bar.show_gpu", "bar.show_temp", "bar.ws_width", "bar.ws_height", "bar.ws_radius"]
+        "bar.show_gpu", "bar.show_temp", "bar.ws_width", "bar.ws_height", "bar.ws_radius",
+        "bar.show_perf", "bar.show_workspaces", "bar.show_window_title", "bar.show_clock", "bar.show_status", "bar.show_tray",
+        "bar.position", "bar.gap", "bar.side_margin", "bar.radius", "bar.border", "palette.bar"]
     readonly property color accent: themeStore.accentColor
 
     contentHeight: col.implicitHeight + 40
@@ -51,6 +54,84 @@ Flickable {
                 label: "Show date"
                 SettingsToggle { accent: page.accent; checked: page.themeStore.showDate
                     onToggled: (v) => page.themeStore.set("bar.show_date", v) }
+            }
+        }
+
+        SettingsCard {
+            title: "Placement"
+            SettingsRow {
+                label: "Edge"
+                hint: "Which screen edge the bar sits on. Windows reserve its space."
+                SettingsChoice { accent: page.accent
+                    options: [{ value: "top", label: "Top" }, { value: "bottom", label: "Bottom" }]
+                    current: page.themeStore.barPosition
+                    onPicked: (v) => page.themeStore.set("bar.position", v) }
+            }
+            SettingsRow {
+                label: "Distance from the edge"
+                SettingsSlider { from: 0; to: 60; step: 1; suffix: " px"; accent: page.accent
+                    value: page.themeStore.barGap
+                    onCommitted: (v) => page.themeStore.set("bar.gap", v) }
+            }
+            SettingsRow {
+                label: "Side margins"
+                hint: "Leaves space on the left and right. Use with a distance from the edge to float the bar."
+                SettingsSlider { from: 0; to: 200; step: 1; suffix: " px"; accent: page.accent
+                    value: page.themeStore.barSideMargin
+                    onCommitted: (v) => page.themeStore.set("bar.side_margin", v) }
+            }
+            SettingsRow {
+                label: "Background colour"
+                hint: "The solid colour behind the bar. Its transparency is set in Appearance → Glass."
+                ColorField { themeStore: page.themeStore; path: "palette.bar"; accent: page.accent; width: 180 }
+            }
+            SettingsRow {
+                label: "Corner radius"
+                SettingsSlider { from: 0; to: 24; step: 1; suffix: " px"; accent: page.accent
+                    value: page.themeStore.barRadius
+                    onCommitted: (v) => page.themeStore.set("bar.radius", v) }
+            }
+            SettingsRow {
+                label: "Outline"
+                hint: "A thin light line around the bar. Off by default."
+                SettingsSlider { from: 0; to: 100; step: 1; suffix: "%"; accent: page.accent
+                    value: page.themeStore.barBorder * 100
+                    onCommitted: (v) => page.themeStore.set("bar.border", v / 100) }
+            }
+        }
+
+        SettingsCard {
+            title: "Zones"
+            // Hides a whole part of the bar. The rest of the bar moves to fill the space.
+            SettingsRow {
+                label: "Performance (CPU, GPU, temperature)"
+                SettingsToggle { accent: page.accent; checked: page.themeStore.showPerf
+                    onToggled: (v) => page.themeStore.set("bar.show_perf", v) }
+            }
+            SettingsRow {
+                label: "Workspaces"
+                SettingsToggle { accent: page.accent; checked: page.themeStore.showWorkspaces
+                    onToggled: (v) => page.themeStore.set("bar.show_workspaces", v) }
+            }
+            SettingsRow {
+                label: "Window title"
+                SettingsToggle { accent: page.accent; checked: page.themeStore.showWindowTitle
+                    onToggled: (v) => page.themeStore.set("bar.show_window_title", v) }
+            }
+            SettingsRow {
+                label: "Clock"
+                SettingsToggle { accent: page.accent; checked: page.themeStore.showClock
+                    onToggled: (v) => page.themeStore.set("bar.show_clock", v) }
+            }
+            SettingsRow {
+                label: "Status (network, Bluetooth, audio, battery)"
+                SettingsToggle { accent: page.accent; checked: page.themeStore.showStatus
+                    onToggled: (v) => page.themeStore.set("bar.show_status", v) }
+            }
+            SettingsRow {
+                label: "System tray"
+                SettingsToggle { accent: page.accent; checked: page.themeStore.showTray
+                    onToggled: (v) => page.themeStore.set("bar.show_tray", v) }
             }
         }
 

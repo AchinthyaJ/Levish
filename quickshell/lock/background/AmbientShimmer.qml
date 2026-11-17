@@ -1,9 +1,10 @@
 import QtQuick
+import "../../common" as Pal
 
 Item {
     id: root
 
-    property color accent: "#c8f7ef"
+    property color accent: Pal.Palette.accent
     property bool active: true
     property bool reducedMotion: false
 

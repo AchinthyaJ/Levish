@@ -3,12 +3,14 @@ import QtQuick.Layouts
 import QtQuick.Controls
 import "../components"
 import "../../common/Theme.js" as Theme
+import "../../common" as Pal
 
 // On-screen display settings. Read by osd/Osd.qml through the ThemeStore.
 Flickable {
     id: page
     property var themeStore
     property string pageId: ""
+    ScrollBar.vertical: PageScrollBar { accent: page.themeStore.accentColor }
     property string keywords: "osd on screen display volume brightness keyboard layout popup timeout indicator"
     readonly property var resetPaths: ["osd.volume", "osd.brightness", "osd.keyboard", "osd.timeout_ms"]
     readonly property color accent: themeStore.accentColor
@@ -57,7 +59,7 @@ Flickable {
         Text {
             Layout.fillWidth: true
             text: "Volume and brightness come from the Levish backend. If the backend is not running, these indicators stay quiet."
-            color: Theme.muted
+            color: Pal.Palette.muted
             font.pixelSize: Theme.fontCaption
             wrapMode: Text.Wrap
         }
