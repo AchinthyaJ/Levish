@@ -22,7 +22,7 @@
     "position": "top",
     "border": 0,
     "gap": 0,
-    "mode": "islands"
+    "mode": "unified"
   },
   "dock": {
     "enabled": true,
@@ -62,7 +62,7 @@
   },
   "config_version": 1,
   "settings": {
-    "last_page": "dock"
+    "last_page": "wallpaper"
   },
   "palette": {
     "window": "#1c1511",

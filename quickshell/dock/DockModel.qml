@@ -99,6 +99,14 @@ Scope {
         if (addr) Hyprland.dispatch('hl.dsp.focus({ window = "address:' + addr + '" })')
     }
 
+    // Asks each window to close. Apps may still ask to save first, as they would from their own close button.
+    function closeWindows(list) {
+        for (const t of list) {
+            const addr = addressOf(t)
+            if (addr) Hyprland.dispatch('hl.dsp.window.close({ window = "address:' + addr + '" })')
+        }
+    }
+
     // ── Pinning: writes config/pinned-apps.json (same file the Python backend uses) ──
     function isPinned(entry) {
         if (!entry) return false

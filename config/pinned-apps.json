@@ -1,9 +1,9 @@
 {
   "dock": [
-    "brave",
     "thunar",
+    "brave-browser",
     "kitty",
-    "code",
+    "com.microsoft.VSCode",
     "com.system76.CosmicFiles"
   ],
   "launcher_pinned": [

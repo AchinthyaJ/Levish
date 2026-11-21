@@ -14,7 +14,7 @@ Version **1.0.0**. See [CHANGELOG.md](CHANGELOG.md) for what is in this release.
 | **Performance panel** | CPU, memory, GPU, storage, and network upload and download, with a network graph. Opens from the bar or with a keybind. |
 | **Control center** | Wi-Fi (scan, connect), Bluetooth (power, devices, pair and connect), volume and mute, brightness, power profiles, media controls, and Lock, Sleep and Restart. |
 | **Power menu** | Lock, Suspend, Restart, Shutdown, Logout. |
-| **Dock** | Pinned and running applications, running indicators, and optional auto-hide that reveals when the pointer reaches the bottom edge. |
+| **Dock** | Pinned and running applications, running indicators, and optional auto-hide that reveals when the pointer reaches the bottom edge. Drag pinned apps to reorder them. Right-click an app for its own actions (such as New Window or New Private Window), Quit, and Keep or Remove in dock. |
 | **Launcher** | Grid or list view. Searches installed desktop applications and recent apps. Pinning is kept in `config/pinned-apps.json`. |
 | **Notifications** | Popups at a chosen screen corner with actions, expiry and hover-to-pause, plus a do-not-disturb switch and a history of the last 100 notifications. |
 | **On-screen display** | Volume, mute, brightness and keyboard-layout changes, shown briefly. |

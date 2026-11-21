@@ -17,6 +17,23 @@ Item {
     required property string matchClass   // window class for an unpinned running app, else ""
     property real zoom: Theme.dockZoom     // hover enlargement, from dock.zoom
     property string side: "bottom"         // screen edge the dock is on
+    property int pinnedIndex: -1           // position in the pinned list; -1 for running-only apps
+
+    // Drag-to-reorder: a pinned cell follows the pointer along the dock's axis through a transform,
+    // so the Grid keeps laying out the others. The Dock writes the new order on release.
+    property bool dragging: false
+    property real dragShift: 0
+    readonly property real dragThreshold: 6
+    property bool suppressClick: false
+
+    signal menuRequested()
+    signal dragReleased(real shift)
+
+    transform: Translate {
+        x: cell.vertical ? 0 : cell.dragShift
+        y: cell.vertical ? cell.dragShift : 0
+    }
+    z: dragging ? 2 : 0
 
     readonly property bool vertical: side === "left" || side === "right"
     readonly property var windows: dockState.windowsFor(entry, matchClass)
@@ -129,7 +146,7 @@ Item {
         color: Pal.Palette.dockTip
         border.color: Pal.Palette.dockEdge
         border.width: 1
-        opacity: hover.containsMouse && cell.label.length > 0 ? 1 : 0
+        opacity: hover.containsMouse && cell.label.length > 0 && !cell.dragging ? 1 : 0
         visible: opacity > 0
         Behavior on opacity { NumberAnimation { duration: Theme.dur(140) } }
         Text {
@@ -148,12 +165,51 @@ Item {
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         acceptedButtons: Qt.LeftButton | Qt.RightButton
-        onClicked: mouse => {
-            if (mouse.button === Qt.RightButton) {
-                if (cell.entry) cell.dockState.togglePin(cell.entry)
-            } else {
-                cell.activate()
+
+        property bool leftDown: false
+        property real pressAlong: 0
+
+        // Pointer position along the dock's axis, in the Grid's frame. The Grid does not move, and
+        // mapping through this cell includes its drag transform, so this is the true pointer position.
+        function along(mouse) {
+            const p = hover.mapToItem(cell.parent, mouse.x, mouse.y)
+            return cell.vertical ? p.y : p.x
+        }
+
+        onPressed: mouse => {
+            cell.suppressClick = false
+            if (mouse.button !== Qt.LeftButton) return
+            leftDown = true
+            pressAlong = along(mouse)
+        }
+
+        onPositionChanged: mouse => {
+            if (!leftDown || cell.pinnedIndex < 0) return
+            const d = along(mouse) - pressAlong
+            if (!cell.dragging) {
+                if (Math.abs(d) < cell.dragThreshold) return
+                cell.dragging = true
             }
+            cell.dragShift = d
+        }
+
+        onReleased: mouse => {
+            if (mouse.button !== Qt.LeftButton) return
+            leftDown = false
+            if (cell.dragging) {
+                cell.dragging = false
+                cell.suppressClick = true
+                cell.dragReleased(cell.dragShift)
+            }
+        }
+
+        onClicked: mouse => {
+            if (cell.suppressClick) {
+                cell.suppressClick = false
+                return
+            }
+            if (mouse.button === Qt.RightButton) cell.menuRequested()
+            else cell.activate()
         }
     }
 }

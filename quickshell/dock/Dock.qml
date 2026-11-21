@@ -111,9 +111,55 @@ PanelWindow {
     Timer {
         id: hideDelay
         interval: 600
+        // The context menu is a separate window placed from this dock's size, so the dock must stay
+        // put while it is open.
         onTriggered: {
-            if (win.autoHide && !stripHover.hovered && !bodyHover.hovered) win.shown = false
+            if (win.autoHide && !win.menuOpen && !stripHover.hovered && !bodyHover.hovered) win.shown = false
         }
+    }
+
+    readonly property bool menuOpen: dockMenu.open
+
+    // Closing the menu lets an auto-hiding dock go away again when the pointer is not over it.
+    DockMenu {
+        id: dockMenu
+        dockWindow: win
+        dockState: win.dockState
+        dockConfig: win.dockConfig
+        onOpenChanged: {
+            if (!open && win.autoHide) hideDelay.restart()
+        }
+    }
+
+    // Drag-to-reorder. `shift` is how far the dragged cell travelled along the dock's axis. Its centre
+    // decides the new slot: it goes before the first other pinned cell whose centre lies beyond it.
+    // Hidden pinned entries (not installed) keep their place in the list.
+    function dropPinned(cell, shift) {
+        const from = cell.pinnedIndex
+        const axis = win.vertical ? "y" : "x"
+        const size = win.vertical ? "height" : "width"
+        const centre = cell[axis] + cell[size] / 2 + shift
+        const others = []
+        for (let i = 0; i < pinnedRepeater.count; i++) {
+            const d = pinnedRepeater.itemAt(i)
+            if (!d || i === from || !d.visible) continue
+            others.push({ index: i, centre: d[axis] + d[size] / 2 })
+        }
+        const before = others.filter(o => o.centre < centre).length
+        const list = win.dockConfig.pinned.slice()
+        const moved = list[from]
+        list.splice(from, 1)
+        let insertAt
+        if (before >= others.length) {
+            insertAt = list.length
+        } else {
+            const next = others[before].index
+            insertAt = next > from ? next - 1 : next
+        }
+        cell.dragShift = 0
+        if (insertAt === from) return
+        list.splice(insertAt, 0, moved)
+        win.dockConfig.savePinned(list)
     }
 
     Item {
@@ -189,9 +235,12 @@ PanelWindow {
             }
 
             Repeater {
+                id: pinnedRepeater
                 model: win.dockConfig.pinned
                 delegate: DockItem {
+                    id: pinnedCell
                     required property string modelData
+                    required property int index
                     dockState: win.dockState
                     iconSize: win.dockConfig.iconSize
                     zoom: win.dockConfig.zoom
@@ -199,7 +248,10 @@ PanelWindow {
                     entry: win.dockState.entryFor(modelData)
                     label: entry ? entry.name : modelData
                     matchClass: ""
+                    pinnedIndex: index
                     visible: entry !== null
+                    onMenuRequested: dockMenu.openFor(pinnedCell)
+                    onDragReleased: shift => Qt.callLater(win.dropPinned, pinnedCell, shift)
                 }
             }
 
@@ -218,6 +270,7 @@ PanelWindow {
             Repeater {
                 model: win.dockState.running
                 delegate: DockItem {
+                    id: runningCell
                     required property string modelData
                     dockState: win.dockState
                     iconSize: win.dockConfig.iconSize
@@ -226,6 +279,7 @@ PanelWindow {
                     matchClass: modelData
                     entry: win.dockState.entryForClass(modelData)
                     label: entry ? entry.name : modelData
+                    onMenuRequested: dockMenu.openFor(runningCell)
                 }
             }
         }
